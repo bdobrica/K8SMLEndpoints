@@ -1,0 +1,7 @@
+apiVersion: blue.intranet/v1alpha1
+kind: MachineLearningEndpoint
+metadata:
+  name: titanic-endpoint
+  namespace: titanic
+spec:
+  config: titanic-toy-rfc-ec

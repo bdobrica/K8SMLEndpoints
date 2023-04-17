@@ -1,0 +1,35 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{endpoint.name}}
+  namespace: {{namespace}}
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - {{endpoint.host}}
+    port:
+      name: http
+      number: 8080
+      protocol: HTTP
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{endpoint.name}}
+  namespace: {{namespace}}
+spec:
+  gateways:
+  - {{endpoint.name}}
+  hosts:
+  - {{endpoint.host}}
+  http:
+  - route:
+    {% for model in models %}
+    - destination:
+      host: {{model.model}}.{{namespace}}.svc.cluster.local
+      port:
+        number: 8080
+      weight: {{model.weight}}
+    {% endfor %}

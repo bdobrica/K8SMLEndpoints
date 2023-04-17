@@ -1,0 +1,12 @@
+apiVersion: blue.intranet/v1alpha1
+kind: MachineLearningEndpointConfig
+metadata:
+  name: titanic-toy-rfc-ec
+  namespace: titanic
+spec:
+  models:
+    - model: titanic-toy-rfc
+      weight: 100
+      cpus: "1"
+      memory: "1Gi"
+      instances: 2

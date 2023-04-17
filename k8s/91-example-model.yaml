@@ -1,0 +1,8 @@
+apiVersion: blue.intranet/v1alpha1
+kind: MachineLearningModel
+metadata:
+  name: titanic-toy-rfc
+  namespace: titanic
+spec:
+  image: quay.io/bdobrica/ml-operator-tools:model-latest
+  artifact: https://ublo.ro/wp-content/friends/titanic.tar.gz

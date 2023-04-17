@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: machine-learning-operator
+  namespace: ml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: machine-learning-operator
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: machine-learning-operator
+    spec:
+      serviceAccountName: machine-learning-operator
+      containers:
+      - image: docker.io/python:3.9.16-bullseye
+        name: machine-learning-operator
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
+        volumeMounts:
+        - name: machine-learning-operator-persistent-storage
+          mountPath: /opt/mlops
+      volumes:
+      - name: machine-learning-operator-persistent-storage
+        persistentVolumeClaim:
+          claimName: machine-learning-operator-pv-claim
