@@ -8,7 +8,14 @@ class CustomResource:
     DEFAULT_GROUP = "blue.intranet"
     DEFAULT_VERSION = "v1alpha1"
 
-    def __init__(self, name: str, plural: str, namespace: str = "default", group: str = None, version: str = None):
+    def __init__(
+        self,
+        name: str,
+        plural: str,
+        namespace: str = "default",
+        group: str = None,
+        version: str = None,
+    ):
         self.name = name
         self.plural = plural
         self.namespace = namespace

@@ -11,6 +11,7 @@ from kubernetes.client.rest import ApiException
 templates_env = Environment(loader=FileSystemLoader("/opt/mlops/templates/"))
 K8SConfig.load_incluster_config()
 
+
 def get_group_and_version(api_version: str):
     api_version = api_version or ""
     if "/" in api_version:
@@ -19,6 +20,7 @@ def get_group_and_version(api_version: str):
         group, version = "", api_version
 
     return group, version
+
 
 def get_cr(api_version: str, namespace: str, plural: str, name: str):
     group, version = get_group_and_version(api_version)
@@ -29,6 +31,7 @@ def get_cr(api_version: str, namespace: str, plural: str, name: str):
     except ApiException:
         return None
 
+
 def list_cr(api_version: str, namespace: str, plural: str):
     group, version = get_group_and_version(api_version)
 
@@ -38,14 +41,18 @@ def list_cr(api_version: str, namespace: str, plural: str):
     except ApiException:
         return None
 
+
 def create_storage(namespace: str, endpoint: str, size: str):
     api_instance = K8SClient.CoreV1Api()
     pv = K8SClient.V1PersistentVolume(
-        metadata=K8SClient.V1ObjectMeta(name=f"{endpoint}-pv", labels={
-            "type": "local",
-            "namespace": namespace,
-            "component": endpoint,
-        }),
+        metadata=K8SClient.V1ObjectMeta(
+            name=f"{endpoint}-pv",
+            labels={
+                "type": "local",
+                "namespace": namespace,
+                "component": endpoint,
+            },
+        ),
         spec=K8SClient.V1PersistentVolumeSpec(
             storage_class_name="manual",
             capacity={"storage": size},
@@ -58,7 +65,8 @@ def create_storage(namespace: str, endpoint: str, size: str):
     except ApiException:
         pass
     pvc = K8SClient.V1PersistentVolumeClaim(
-        metadata=K8SClient.V1ObjectMeta(name=f"{endpoint}-pv-claim",
+        metadata=K8SClient.V1ObjectMeta(
+            name=f"{endpoint}-pv-claim",
             namespace=namespace,
         ),
         spec=K8SClient.V1PersistentVolumeClaimSpec(
@@ -71,11 +79,53 @@ def create_storage(namespace: str, endpoint: str, size: str):
                     "namespace": namespace,
                     "component": endpoint,
                 }
-            )
+            ),
         ),
     )
     try:
         api_instance.create_namespaced_persistent_volume_claim(namespace, pvc)
+    except ApiException:
+        pass
+
+
+def create_deployment(endpoint: str, instances: int, cpus: str, memory: str, image: str, env: dict):
+    api_instance = K8SClient.AppsV1Api()
+    deployment = K8SClient.V1Deployment(
+        metadata=K8SClient.V1ObjectMeta(name=endpoint),
+        spec=K8SClient.V1DeploymentSpec(
+            replicas=instances,
+            selector=K8SClient.V1LabelSelector(
+                match_labels={"component": endpoint},
+            ),
+            template=K8SClient.V1PodTemplateSpec(
+                metadata=K8SClient.V1ObjectMeta(labels={"component": endpoint}),
+                spec=K8SClient.V1PodSpec(
+                    containers=[
+                        K8SClient.V1Container(
+                            name=endpoint,
+                            image=image,
+                            resources=K8SClient.V1ResourceRequirements(
+                                requests={"cpu": cpus, "memory": memory},
+                                limits={"cpu": cpus, "memory": memory},
+                            ),
+                            env=[K8SClient.V1EnvVar(name=k, value=v) for k, v in env.items()],
+                            ports=[K8SClient.V1ContainerPort(container_port=8080)],
+                        )
+                    ],
+                    volumes=[
+                        K8SClient.V1Volume(
+                            name="model-volume",
+                            persistent_volume_claim=K8SClient.V1PersistentVolumeClaimVolumeSource(
+                                claim_name=f"{endpoint}-pv-claim",
+                            ),
+                        )
+                    ],
+                ),
+            ),
+        ),
+    )
+    try:
+        api_instance.create_namespaced_deployment(namespace, deployment)
     except ApiException:
         pass
 
@@ -93,13 +143,9 @@ def ml_endpoint_create_fn(name: str, namespace: str, spec: dict, meta: dict, **k
     for endpoint_model in endpoint_model_list:
         model = get_cr(api_version, namespace, "machinelearningmodels", endpoint_model.get("model"))
         endpoint_model.update(model.get("spec", {}))
-    
 
     endpoint_template = templates_env.get_template("01-endpoint.yaml")
-    endpoint_content = endpoint_template.render(
-        namespace=namespace,
-        models=endpoint_model_list
-    )
+    endpoint_content = endpoint_template.render(namespace=namespace, models=endpoint_model_list)
 
     logging.info(f"template:\n{endpoint_content}")
 
