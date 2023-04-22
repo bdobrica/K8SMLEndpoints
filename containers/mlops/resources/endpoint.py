@@ -1,3 +1,5 @@
+from typing import Any
+
 from kubernetes import client as K8SClient
 from resources.custom_resource import CustomResource
 from resources.endpoint_config import EndpointConfig
@@ -10,15 +12,17 @@ class Endpoint(CustomResource):
             {"endpoint": self.name}
         )
 
-    def create(self):
-        models = self.config.create()
+        self.gateway: Any = None
+        self.endpoint_config: EndpointConfig = None
 
+    def create(self) -> "Endpoint":
         api = K8SClient.CustomObjectsApi()
-        body = {
+
+        gateway_body = {
             "apiVersion": "networking.istio.io/v1beta1",
             "kind": "Gateway",
             "metadata": {
-                "name": f"{self.name}-gateway",
+                "name": f"{self.name}-gw",
                 "namespace": self.namespace,
             },
             "spec": {
@@ -37,46 +41,15 @@ class Endpoint(CustomResource):
                 ],
             },
         }
-        api.create_namespaced_custom_object(
-            group="networking.istio.io", version="v1beta1", namespace=self.namespace, plural="gateways", body=body
-        )
-
-        body = {
-            "apiVersion": "networking.istio.io/v1beta1",
-            "kind": "VirtualService",
-            "metadata": {
-                "name": f"{self.name}-virtualservice",
-                "namespace": self.namespace,
-            },
-            "spec": {
-                "gateways": [
-                    f"{self.name}-gateway",
-                ],
-                "hosts": [
-                    self.data.get("spec", {}).get("host"),
-                ],
-                "http": [
-                    {
-                        "route": [
-                            {
-                                "destination": {
-                                    "host": model.name,
-                                    "port": {
-                                        "number": 8080,
-                                    },
-                                    "weight": model.weight,
-                                }
-                                for model in models
-                            }
-                        ]
-                    }
-                ],
-            },
-        }
-        api.create_namespaced_custom_object(
+        self.gateway = api.create_namespaced_custom_object(
             group="networking.istio.io",
             version="v1beta1",
             namespace=self.namespace,
-            plural="virtualservices",
-            body=body,
+            plural="gateways",
+            body=gateway_body,
+        )
+
+        self.endpoint_config = EndpointConfig().create(
+            endpoint=self.name,
+            hosts=[self.data.get("spec", {}).get("host")],
         )

@@ -24,5 +24,7 @@ spec:
               properties:
                 config:
                   type: string
-              required: [ "config" ]
+                host:
+                  type: string
+              required: [ "config", "host" ]
           required: [ "spec" ]

@@ -1,30 +1,78 @@
+from typing import Any, List
+
 from kubernetes import client as K8SClient
 from resources.custom_resource import CustomResource
 from resources.model import Model
+from utils import get_version
 
 
 class EndpointConfig(CustomResource):
     def get_models(self):
-        model_list = []
-        for model in self.data.get("spec", {}).get("models", []):
-            model_list.append(
-                Model(model.get("model"), self.namespace).set_metadata(
-                    {
-                        "config": self,
-                        "cpus": model.get("cpus"),
-                        "memory": model.get("memory"),
-                        "instances": model.get("instances"),
-                    }
-                )
-            )
-        return model_list
+        return [model for model in self.data.get("spec", {}).get("models", [])]
 
     def __init__(self, name: str, namespace: str = "default"):
         super().__init__(name, "machinelearningendpointconfigs", namespace)
-        self.models = self.get_models()
 
-    def create(self):
-        uid = ""
-        for model in self.data.get("spec", {}).get("models", []):
-            model = Model(api=self.api, name=model.get("model"), namespace=self.namespace)
-            model.create(uid=uid, cpus=model.get("cpus"), memory=model.get("memory"), instances=model.get("instances"))
+        self.version: str = None
+        self.variants: List[Model] = []
+        self.virtual_service: Any = None
+
+    def create(self, endpoint: str, hosts: List[str]) -> "EndpointConfig":
+        api = K8SClient.CustomObjectsApi()
+
+        self.version = get_version()
+
+        virtual_service_routes = []
+        virtual_service_body = {
+            "apiVersion": "networking.istio.io/v1beta1",
+            "kind": "VirtualService",
+            "metadata": {
+                "name": f"{self.name}-{self.version}-vs",
+                "namespace": self.namespace,
+            },
+            "spec": {
+                "gateways": [
+                    f"{endpoint}",
+                ],
+                "hosts": hosts,
+                "http": [
+                    {
+                        "route": virtual_service_routes,
+                    }
+                ],
+            },
+        }
+
+        for model in self.get_models():
+            variant = Model(
+                name=f"{model.get('name')}",
+                namespace=self.namespace,
+            ).create(
+                instances=model.get("instances"),
+                cpus=model.get("cpus"),
+                memory=model.get("memory"),
+                size=model.get("size"),
+                path=model.get("path"),
+            )
+            virtual_service_routes.append(
+                {
+                    "destination": {
+                        "host": f"{variant.name}-{variant.version}",
+                        "port": {
+                            "number": 8080,
+                        },
+                        "weight": model.get("weight"),
+                    }
+                }
+            )
+            self.variants.append(variant)
+
+        self.virtual_service = api.create_namespaced_custom_object(
+            group="networking.istio.io",
+            version="v1beta1",
+            namespace=self.namespace,
+            plural="virtualservices",
+            body=virtual_service_body,
+        )
+
+        return self
