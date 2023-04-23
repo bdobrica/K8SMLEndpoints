@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from kubernetes import client as K8SClient
 
 
@@ -29,7 +31,7 @@ class ModelStorage:
                 storage_class_name="manual",
                 capacity={"storage": self.size},
                 access_modes=["ReadWriteOnce"],
-                host_path=K8SClient.V1HostPathVolumeSource(path=self.path),
+                host_path=K8SClient.V1HostPathVolumeSource(path=(self.path / self.version).as_posix()),
             ),
         )
         self.pv = api.create_persistent_volume(body=pv_body)

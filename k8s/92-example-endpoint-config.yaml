@@ -10,3 +10,5 @@ spec:
       cpus: "1"
       memory: "1Gi"
       instances: 2
+      size: "1Gi"
+      path: "/mnt/nfs/models"

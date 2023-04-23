@@ -54,27 +54,29 @@ class ModelDeployment:
                         }
                     ),
                     spec=K8SClient.V1PodSpec(
-                        init_containers=K8SClient.V1Container(
-                            image=self.INIT_IMAGE,
-                            name=f"{self.name}-init",
-                            env=[
-                                K8SClient.V1EnvVar(
-                                    name="MODEL_URL",
-                                    value=self.artifact,
-                                ),
-                                K8SClient.V1EnvVar(
-                                    name="MODEL_PATH",
-                                    value="/opt/ml",
-                                ),
-                            ],
-                            volume_mounts=[
-                                K8SClient.V1VolumeMount(
-                                    name=f"{self.name}-{self.version}",
-                                    mount_path="/opt/ml",
-                                    read_only=True,
-                                )
-                            ],
-                        ),
+                        init_containers=[
+                            K8SClient.V1Container(
+                                image=self.INIT_IMAGE,
+                                name=f"{self.name}-init",
+                                env=[
+                                    K8SClient.V1EnvVar(
+                                        name="MODEL_URL",
+                                        value=self.artifact,
+                                    ),
+                                    K8SClient.V1EnvVar(
+                                        name="MODEL_PATH",
+                                        value="/opt/ml",
+                                    ),
+                                ],
+                                volume_mounts=[
+                                    K8SClient.V1VolumeMount(
+                                        name=f"{self.name}-{self.version}",
+                                        mount_path="/opt/ml",
+                                        read_only=True,
+                                    )
+                                ],
+                            )
+                        ],
                         containers=[
                             K8SClient.V1Container(
                                 name=self.name,

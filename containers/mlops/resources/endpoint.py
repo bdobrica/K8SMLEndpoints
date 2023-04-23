@@ -3,53 +3,44 @@ from typing import Any
 from kubernetes import client as K8SClient
 from resources.custom_resource import CustomResource
 from resources.endpoint_config import EndpointConfig
+from resources.istio_gateway import IstioGateway
 
 
 class Endpoint(CustomResource):
     def __init__(self, name: str, namespace: str = "default"):
         super().__init__(name, "machinelearningendpoints", namespace)
-        self.config = EndpointConfig(self.data.get("spec", {}).get("config"), self.namespace).set_metadata(
-            {"endpoint": self.name}
-        )
 
-        self.gateway: Any = None
-        self.endpoint_config: EndpointConfig = None
+        self.gateway_name = f"{self.name}-gw"
+
+        self.endpoint_config = None
+        self.gateway = IstioGateway(name=self.gateway_name, namespace=self.namespace)
+        self.endpoint_config = EndpointConfig(name=self.data.get("spec", {}).get("config"), namespace=self.namespace)
 
     def create(self) -> "Endpoint":
-        api = K8SClient.CustomObjectsApi()
-
-        gateway_body = {
-            "apiVersion": "networking.istio.io/v1beta1",
-            "kind": "Gateway",
-            "metadata": {
-                "name": f"{self.name}-gw",
-                "namespace": self.namespace,
-            },
-            "spec": {
-                "selector": {
-                    "istio": "ingressgateway",
-                },
-                "servers": [
-                    {
-                        "hosts": [self.data.get("spec", {}).get("host")],
-                        "port": {
-                            "name": "http",
-                            "number": 8080,
-                            "protocol": "HTTP",
-                        },
-                    },
-                ],
-            },
-        }
-        self.gateway = api.create_namespaced_custom_object(
-            group="networking.istio.io",
-            version="v1beta1",
-            namespace=self.namespace,
-            plural="gateways",
-            body=gateway_body,
+        self.gateway.create(
+            hosts=[self.data.get("spec", {}).get("host")],
+            port=8080,
         )
 
-        self.endpoint_config = EndpointConfig().create(
+        self.endpoint_config.create(
             endpoint=self.name,
             hosts=[self.data.get("spec", {}).get("host")],
         )
+
+    def update(self) -> "Endpoint":
+        self.gateway.update(
+            hosts=[self.data.get("spec", {}).get("host")],
+            port=8080,
+        )
+
+        self.endpoint_config.update(
+            endpoint=self.name,
+            hosts=[self.data.get("spec", {}).get("host")],
+        )
+        return self
+
+    def delete(self) -> "Endpoint":
+        self.endpoint_config.delete()
+        self.gateway.delete()
+
+        return self

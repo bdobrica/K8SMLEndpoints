@@ -37,6 +37,10 @@ spec:
                         type: string
                       instances:
                         type: integer
+                      size:
+                        type: string
+                      path:
+                        type: string
                     required: [ "model" ]
               required: [ "models" ]
           required: [ "spec" ]
