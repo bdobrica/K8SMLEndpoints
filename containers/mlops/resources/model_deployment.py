@@ -1,35 +1,23 @@
+from typing import Any, Union
+
 from kubernetes import client as K8SClient
+from pydantic import BaseModel
 from resources.model_storage import ModelStorage
 
 
-class ModelDeployment:
-    INIT_IMAGE = "quay.io/bdobrica/ml-operator-tools:model-init-latest"
+class ModelDeployment(BaseModel):
+    name: str
+    namespace: str
+    version: Union[str, None]
+    image: str
+    init_image: str = "quay.io/bdobrica/ml-operator-tools:model-init-latest"
+    artifact: str
+    instances: int
+    cpus: str
+    memory: str
+    deployment: Union[Any, None] = None
 
-    def __init__(
-        self,
-        name: str,
-        namespace: str,
-        version: str,
-        image: str,
-        artifact: str,
-        instances: int,
-        cpus: str,
-        memory: str,
-    ):
-        self.name = name
-        self.namespace = namespace
-        self.version = version
-        self.artifact = artifact
-        self.image = image
-        self.instances = instances
-        self.cpus = cpus
-        self.memory = memory
-
-        self.deployment = None
-
-    def create(self) -> "ModelDeployment":
-        api = K8SClient.AppsV1Api()
-
+    def get_deployment_body(self) -> K8SClient.V1Deployment:
         deployment_body = K8SClient.V1Deployment(
             metadata=K8SClient.V1ObjectMeta(
                 name=f"{self.name}-{self.version}",
@@ -111,5 +99,39 @@ class ModelDeployment:
                 ),
             ),
         )
-        self.deployment = api.create_namespaced_deployment(namespace=self.namespace, body=deployment_body)
+        return deployment_body
+
+    def create(self) -> "ModelDeployment":
+        if self.deployment is not None:
+            return self.update()
+
+        api = K8SClient.AppsV1Api()
+        deployment_body = self.get_deployment_body()
+        self.deployment = api.create_namespaced_deployment(
+            namespace=self.namespace,
+            body=deployment_body,
+        )
+        return self
+
+    def update(self) -> "ModelDeployment":
+        if self.deployment is None:
+            return self.create()
+
+        api = K8SClient.AppsV1Api()
+        deployment_body = self.get_deployment_body()
+        self.deployment = api.patch_namespaced_deployment(
+            name=f"{self.name}-{self.version}",
+            namespace=self.namespace,
+            body=deployment_body,
+        )
+        return self
+
+    def delete(self) -> "ModelDeployment":
+        api = K8SClient.AppsV1Api()
+        api.delete_namespaced_deployment(
+            name=f"{self.name}-{self.version}",
+            namespace=self.namespace,
+        )
+
+        self.deployment = None
         return self

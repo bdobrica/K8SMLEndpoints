@@ -1,18 +1,18 @@
 from pathlib import Path
+from typing import Any, Union
 
 from kubernetes import client as K8SClient
+from pydantic import BaseModel
 
 
 class ModelStorage:
-    def __init__(self, name: str, namespace: str, version: str, size: str, path: str):
-        self.name = name
-        self.namespace = namespace
-        self.version = version
-        self.size = size
-        self.path = path
-
-        self.pv = None
-        self.pvc = None
+    name: str
+    namespace: str
+    version: Union[str, None]
+    size: str
+    path: Path
+    pv: Union[Any, None] = None
+    pvc: Union[Any, None] = None
 
     def create(self) -> "ModelStorage":
         api = K8SClient.CoreV1Api()

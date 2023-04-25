@@ -35,3 +35,12 @@ class Model(CustomResource):
         ).create()
         self.service = ModelService(name=self.name, namespace=self.namespace, version=self.version).create()
         return self
+
+    def update(self, instances: str, cpus: str, memory: str, size: str, path: str) -> "Model":
+        return self
+
+    def delete(self):
+        self.service.delete()
+        self.deployment.delete()
+        self.storage.delete()
+        return self

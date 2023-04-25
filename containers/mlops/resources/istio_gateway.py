@@ -1,5 +1,6 @@
 from typing import List
 
+import istio_client as IstioClient
 from kubernetes import client as K8SClient
 from resources.custom_resource import CustomResource
 
@@ -14,37 +15,27 @@ class IstioGateway(CustomResource):
         if self.data:
             return self.update(hosts=hosts, port=port)
 
-        api = K8SClient.CustomObjectsApi()
+        api = IstioClient.V1Beta1Api()
 
-        gateway_body = {
-            "apiVersion": f"{self.group}/{self.version}",
-            "kind": "Gateway",
-            "metadata": {
-                "name": self.name,
-                "namespace": self.namespace,
-            },
-            "spec": {
-                "selector": {
-                    "istio": "ingressgateway",
-                },
-                "servers": [
-                    {
-                        "hosts": hosts,
-                        "port": {
-                            "name": "http",
-                            "number": port,
-                            "protocol": "HTTP",
-                        },
-                    },
+        gateway_body = IstioClient.V1beta1Gateway(
+            metadata=IstioClient.V1ObjectMeta(name=self.name, namespace=self.namespace),
+            spec=IstioClient.V1beta1GatewaySpec(
+                selector=IstioClient.V1beta1GatewaySpecSelector(istio="ingressgateway"),
+                servers=[
+                    IstioClient.V1beta1Server(
+                        hosts=hosts,
+                        port=IstioClient.V1beta1ServerPort(
+                            name="http",
+                            number=port,
+                            protocol="HTTP",
+                        ),
+                    )
                 ],
-            },
-        }
+            ),
+        )
 
-        self.data = api.create_namespaced_custom_object(
-            group=self.group,
-            version=self.version,
+        self.data = api.create_namespaced_gateway(
             namespace=self.namespace,
-            plural=self.plural,
             body=gateway_body,
         ).get("spec", {})
 
