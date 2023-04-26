@@ -20,6 +20,9 @@ class EndpointConfig(CustomResource):
         self.variants: List[Model] = []
         self.virtual_service: Any = None
 
+    def get_attached_endpoint(self):
+        return None
+
     def create(self, endpoint: str, hosts: List[str]) -> "EndpointConfig":
         api = K8SClient.CustomObjectsApi()
 
@@ -76,7 +79,18 @@ class EndpointConfig(CustomResource):
 
         return self
 
-    def update(self, endpoint: str, hosts: List[str]) -> "EndpointConfig":
+    def update(self, diff: dict) -> "EndpointConfig":
+        """
+        Update the EndpointConfig. As resources are allocated only when the EndpointConfig is attached to an Endpoint, check if this EndpointConfig is attached to an Endpoint before updating.
+        If an endpoint is attached, then:
+        - if only weights are being updated, update the weights of the models on the virtual service;
+        - if the number of models decreases, delete the models that are no longer needed;
+        - if new models are swapped in or added, create new models, add them with the same weights to the virtual service, mark them for monitoring by the daemon, and when all good, delete the old models;
+        :param diff: The diff between the old and new versions of the CRD
+        """
+        if self.get_attached_endpoint() is None:
+            return self
+
         return self
 
     def delete(self) -> "EndpointConfig":

@@ -38,7 +38,7 @@ def ml_endpoint_update_fn(name: str, namespace: str, spec: dict, meta: dict, dif
     logging.info(f"Kwargs: {kwargs}")
 
     try:
-        endpoint = Endpoint(name, namespace).update()
+        endpoint = Endpoint(name, namespace).update(diff)
     except ApiException as err:
         logging.error(err)
         raise kopf.PermanentError(err)
@@ -66,7 +66,7 @@ def ml_endpoint_config_update_fn(name: str, namespace: str, spec: dict, meta: di
     logging.info(f"Kwargs: {kwargs}")
 
     try:
-        endpoint_config = EndpointConfig(name, namespace).update()
+        endpoint_config = EndpointConfig(name, namespace).update(diff)
     except ApiException as err:
         logging.error(err)
         raise kopf.PermanentError(err)
@@ -80,7 +80,7 @@ def ml_model_update_fn(name: str, namespace: str, spec: dict, meta: dict, diff: 
     logging.info(f"Kwargs: {kwargs}")
 
     try:
-        model = Model(name, namespace).update()
+        model = Model(name, namespace).update(diff)
     except ApiException as err:
         logging.error(err)
         raise kopf.PermanentError(err)
