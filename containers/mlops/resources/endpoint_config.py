@@ -1,53 +1,67 @@
 from typing import Any, List
 
-from kubernetes import client as K8SClient
-from resources.custom_resource import CustomResource
 from resources.istio_virtual_service import IstioVirtualService
+from resources.mlops import client as MLOpsClient
 from resources.model import Model
-from utils import get_version
+from utils import DiffLine, DiffLineType, get_version
 
 
-class EndpointConfig(CustomResource):
-    def get_models(self):
-        return [model for model in self.data.get("spec", {}).get("models", [])]
-
+class EndpointConfig:
     def __init__(self, name: str, namespace: str = "default"):
-        super().__init__(name, "machinelearningendpointconfigs", namespace)
+        self.name: str = None
+        self.namespace: str = None
+        self.body = MLOpsClient.V1Beta1Api().get_namespaced_endpoint_config(name=self.name, namespace=self.namespace)
 
-        self.virtual_service_name = f"{self.name}-{self.version}-vs"
-
+        self.virtual_service_name: str = None
         self.version: str = None
-        self.variants: List[Model] = []
-        self.virtual_service: Any = None
 
-    def get_attached_endpoint(self):
-        return None
+        self.virtual_service = IstioVirtualService(self.virtual_service_name, self.namespace)
+        self.variants: List[Model] = None
+
+    def create(self) -> "EndpointConfig":
+        return self
+
+    def update(self, diff: DiffLineType) -> "EndpointConfig":
+        return self
+
+    def delete(self) -> "EndpointConfig":
+        if not self.body:
+            return self
+
+        api = MLOpsClient.V1Beta1Api()
+        api.delete_namespaced_endpoint_config(name=self.name, namespace=self.namespace)
+        self.body = None
+        return self
+
+    def get_attached_endpoint(self) -> List[MLOpsClient.V1Beta1Endpoint]:
+        return list(
+            filter(
+                lambda item: item.spec.config == self.name,
+                MLOpsClient.V1Beta1Api().list_namespaced_endpoints(namespace=self.namespace),
+            )
+        )
+
+    def get_body(self, endpoint: str, hosts: List[str]) -> MLOpsClient.V1Beta1EndpointConfig:
+        pass
+
+    def provision(self) -> "EndpointConfig":
+        self.virtual_service.provision()
+        for variant in self.variants:
+            variant.provision()
+        return self
+
+    def teardown(self) -> "EndpointConfig":
+        for variant in self.variants:
+            variant.teardown()
+        self.variants = []
+
+        self.virtual_service.delete()
+        self.virtual_service = None
+
+        return self
 
     def create(self, endpoint: str, hosts: List[str]) -> "EndpointConfig":
-        api = K8SClient.CustomObjectsApi()
-
         self.version = get_version()
-
-        virtual_service_routes = []
-        virtual_service_body = {
-            "apiVersion": "networking.istio.io/v1beta1",
-            "kind": "VirtualService",
-            "metadata": {
-                "name": f"{self.name}-{self.version}-vs",
-                "namespace": self.namespace,
-            },
-            "spec": {
-                "gateways": [
-                    f"{endpoint}",
-                ],
-                "hosts": hosts,
-                "http": [
-                    {
-                        "route": virtual_service_routes,
-                    }
-                ],
-            },
-        }
 
         virtual_service_destinations = []
 
@@ -71,15 +85,12 @@ class EndpointConfig(CustomResource):
             )
             self.variants.append(variant)
 
-        self.virtual_service.create(
-            gateway=endpoint,
-            hosts=hosts,
-            destinations=virtual_service_destinations,
+        self.virtual_service = IstioVirtualService(name=self.virtual_service_name, namespace=self.namespace).create(
+            gateway=endpoint, hosts=hosts, destinations=virtual_service_destinations
         )
-
         return self
 
-    def update(self, diff: dict) -> "EndpointConfig":
+    def update(self, diff: DiffLineType) -> "EndpointConfig":
         """
         Update the EndpointConfig. As resources are allocated only when the EndpointConfig is attached to an Endpoint, check if this EndpointConfig is attached to an Endpoint before updating.
         If an endpoint is attached, then:
@@ -93,18 +104,26 @@ class EndpointConfig(CustomResource):
 
         return self
 
-    def delete(self) -> "EndpointConfig":
-        for variant in self.variants:
-            variant.delete()
+    def add_finalizers(self, finalizers: List[str]) -> "EndpointConfig":
+        if isinstance(self.body.metadata.finalizers, list):
+            for finalizer in finalizers:
+                if finalizer not in self.body.metadata.finalizers:
+                    self.body.metadata.finalizers.append(finalizer)
+        else:
+            self.body.metadata.finalizers = finalizers
 
-        api = K8SClient.CustomObjectsApi()
+        api = MLOpsClient.V1Beta1Api()
+        self.body = api.patch_namespaced_endpoint_config(name=self.name, namespace=self.namespace, body=self.body)
 
-        api.delete_namespaced_custom_object(
-            group="networking.istio.io",
-            version="v1beta1",
-            namespace=self.namespace,
-            plural="virtualservices",
-            name=f"{self.name}-{self.version}-vs",
-        )
+        return self
+
+    def remove_finalizers(self, finalizers: List[str]) -> "EndpointConfig":
+        if isinstance(self.body.metadata.finalizers, list):
+            for finalizer in finalizers:
+                if finalizer in self.body.metadata.finalizers:
+                    self.body.metadata.finalizers.remove(finalizer)
+
+        api = MLOpsClient.V1Beta1Api()
+        self.body = api.patch_namespaced_endpoint_config(name=self.name, namespace=self.namespace, body=self.body)
 
         return self

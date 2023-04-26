@@ -1,46 +1,65 @@
-from typing import Any
+from typing import Any, Tuple
 
-from kubernetes import client as K8SClient
-from resources.custom_resource import CustomResource
 from resources.endpoint_config import EndpointConfig
 from resources.istio_gateway import IstioGateway
+from resources.mlops import client as MLOpsClient
+from utils import DiffLine, DiffLineType
 
 
-class Endpoint(CustomResource):
+class Endpoint:
     def __init__(self, name: str, namespace: str = "default"):
-        super().__init__(name, "machinelearningendpoints", namespace)
+        self.name = name
+        self.namespace = namespace
+        self.body = MLOpsClient.V1Beta1Api().get_namespaced_endpoint(name=self.name, namespace=self.namespace)
 
         self.gateway_name = f"{self.name}-gw"
+        self.endpoint_config_name = self.body.spec.config
 
-        self.endpoint_config = None
         self.gateway = IstioGateway(name=self.gateway_name, namespace=self.namespace)
-        self.endpoint_config = EndpointConfig(name=self.data.get("spec", {}).get("config"), namespace=self.namespace)
+        self.endpoint_config = EndpointConfig(name=self.endpoint_config_name, namespace=self.namespace)
 
     def create(self) -> "Endpoint":
-        self.gateway.create(
-            hosts=[self.data.get("spec", {}).get("host")],
-            port=8080,
-        )
-
-        self.endpoint_config.create(
-            endpoint=self.name,
-            hosts=[self.data.get("spec", {}).get("host")],
-        )
-
-    def update(self) -> "Endpoint":
-        self.gateway.update(
-            hosts=[self.data.get("spec", {}).get("host")],
-            port=8080,
-        )
-
-        self.endpoint_config.update(
-            endpoint=self.name,
-            hosts=[self.data.get("spec", {}).get("host")],
-        )
         return self
 
     def delete(self) -> "Endpoint":
+        return self
+
+    def update(self, body: MLOpsClient.V1Beta1Endpoint) -> "Endpoint":
+        return self
+
+    def provision(self) -> "Endpoint":
+        self.gateway.create(hosts=[self.body.spec.host], port=8080)
+        self.endpoint_config.provision(endpoint=self.name, hosts=[self.body.spec.host])
+        return self
+
+    def teardown(self) -> "Endpoint":
+        self.endpoint_config.teardown()
         self.endpoint_config.delete()
         self.gateway.delete()
+        return self
 
+    def modify(self, diff: Tuple[DiffLineType, ...]) -> "Endpoint":
+        self.gateway.update(hosts=[self.body.spec.host], port=8080)
+
+        try:
+            endpoint_config_diff = next(
+                filter(
+                    lambda line: line.action == "change" and line.path == ("spec", "config"),
+                    map(
+                        lambda line: DiffLine.from_tuple(line),
+                        diff,
+                    ),
+                )
+            )
+        except StopIteration:
+            return self
+
+        endpoint_config = (
+            EndpointConfig(name=endpoint_config_diff.new_value, namespace=self.namespace)
+            .create()
+            .provision(endpoint=self.name, hosts=[self.body.spec.host])
+        )
+
+        self.endpoint_config.add_finalizers([f"started:{endpoint_config.name}"]).delete()
+        self.endpoint_config = endpoint_config
         return self

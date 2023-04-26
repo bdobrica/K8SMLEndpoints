@@ -1,23 +1,19 @@
 from typing import Dict, List
 
-import istio_client as IstioClient
 from kubernetes import client as K8SClient
-from resources.custom_resource import CustomResource
+from resources.istio import client as IstioClient
 
 
-class IstioVirtualService(CustomResource):
-    def __init__(self, name: str, namespace: str = "default"):
-        super().__init__(
-            name=name, plural="virtualservices", namespace=namespace, group="networking.istio.io", version="v1beta1"
-        )
+class IstioVirtualService:
+    def __init__(self, name: str, namespace: str = "default") -> None:
+        self.name = name
+        self.namespace = namespace
+        self.body = IstioClient.V1Beta1Api().get_namespaced_virtual_service(self.name, self.namespace)
 
-    def create(self, gateway: str, hosts: List[str], destinations: List[Dict[str, str]]) -> "IstioVirtualService":
-        if self.data:
-            return self.update(gateway=gateway, hosts=hosts, destinations=destinations)
-
-        api = K8SClient.CustomObjectsApi()
-
-        virtual_service_body = IstioClient.V1Beta1VirtualService(
+    def get_body(
+        self, gateway: str, hosts: List[str], destinations: List[Dict[str, str]]
+    ) -> IstioClient.V1Beta1VirtualService:
+        return IstioClient.V1Beta1VirtualService(
             metadata=IstioClient.V1ObjectMeta(name=self.name, namespace=self.namespace),
             spec=IstioClient.V1Beta1VirtualServiceSpec(
                 gateways=[gateway],
@@ -37,68 +33,30 @@ class IstioVirtualService(CustomResource):
             ),
         )
 
-        self.data = api.create_namespaced_custom_object(
-            group=self.group,
-            version=self.version,
-            namespace=self.namespace,
-            plural=self.plural,
-            body=virtual_service_body,
-        )
+    def create(self, gateway: str, hosts: List[str], destinations: List[Dict[str, str]]) -> "IstioVirtualService":
+        if self.body:
+            return self.update(gateway=gateway, hosts=hosts, destinations=destinations)
 
+        api = IstioClient.V1Beta1Api()
+        body = self.get_body(gateway=gateway, hosts=hosts, destinations=destinations)
+        self.body = api.create_namespaced_virtual_service(namespace=self.namespace, body=body)
         return self
 
     def update(self, gateway: str, hosts: List[str], destinations: List[Dict[str, str]]) -> "IstioVirtualService":
+        if not self.body:
+            return self.create(gateway=gateway, hosts=hosts, destinations=destinations)
+
         api = K8SClient.CustomObjectsApi()
-
-        virtual_service_body = {
-            "apiVersion": "networking.istio.io/v1beta1",
-            "kind": "VirtualService",
-            "metadata": {
-                "name": self.name,
-                "namespace": self.namespace,
-            },
-            "spec": {
-                "gateways": [
-                    gateway,
-                ],
-                "hosts": hosts,
-                "http": [
-                    {
-                        "route": [
-                            {
-                                "host": destination.get("host"),
-                                "port": {"number": destination.get("port")},
-                                "weight": destination.get("weight"),
-                            }
-                            for destination in destinations
-                        ],
-                    }
-                ],
-            },
-        }
-
-        self.data = api.patch_namespaced_custom_object(
-            group=self.group,
-            version=self.version,
-            namespace=self.namespace,
-            plural=self.plural,
-            name=self.name,
-            body=virtual_service_body,
-        )
-
+        body = self.get_body(gateway=gateway, hosts=hosts, destinations=destinations)
+        self.body = api.patch_namespaced_custom_object(name=self.name, namespace=self.namespace, body=body)
         return self
 
     def delete(self) -> "IstioVirtualService":
-        api = K8SClient.CustomObjectsApi()
+        if not self.body:
+            return self
 
-        api.delete_namespaced_custom_object(
-            group=self.group,
-            version=self.version,
-            namespace=self.namespace,
-            plural=self.plural,
-            name=self.name,
-        )
-
-        self.data = None
+        api = IstioClient.V1Beta1Api()
+        api.delete_namespaced_virtual_service(name=self.name, namespace=self.namespace)
+        self.body = None
 
         return self
