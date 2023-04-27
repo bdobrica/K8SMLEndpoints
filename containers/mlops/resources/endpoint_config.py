@@ -44,13 +44,13 @@ class EndpointConfig:
     def get_body(self, endpoint: str, hosts: List[str]) -> MLOpsClient.V1Beta1EndpointConfig:
         pass
 
-    def provision(self) -> "EndpointConfig":
-        self.virtual_service.provision()
+    def create_handler(self) -> "EndpointConfig":
+        self.virtual_service.create()
         for variant in self.variants:
-            variant.provision()
+            variant.create()
         return self
 
-    def teardown(self) -> "EndpointConfig":
+    def delete_handler(self) -> "EndpointConfig":
         for variant in self.variants:
             variant.teardown()
         self.variants = []

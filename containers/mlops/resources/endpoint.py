@@ -27,18 +27,18 @@ class Endpoint:
     def update(self, body: MLOpsClient.V1Beta1Endpoint) -> "Endpoint":
         return self
 
-    def provision(self) -> "Endpoint":
+    def create_handler(self) -> "Endpoint":
         self.gateway.create(hosts=[self.body.spec.host], port=8080)
-        self.endpoint_config.provision(endpoint=self.name, hosts=[self.body.spec.host])
+        self.endpoint_config.create(endpoint=self.name, hosts=[self.body.spec.host])
         return self
 
-    def teardown(self) -> "Endpoint":
-        self.endpoint_config.teardown()
+    def delete_handler(self) -> "Endpoint":
+        self.endpoint_config.delete_handler()
         self.endpoint_config.delete()
         self.gateway.delete()
         return self
 
-    def modify(self, diff: Tuple[DiffLineType, ...]) -> "Endpoint":
+    def update_handler(self, diff: Tuple[DiffLineType, ...]) -> "Endpoint":
         self.gateway.update(hosts=[self.body.spec.host], port=8080)
 
         try:
@@ -57,7 +57,7 @@ class Endpoint:
         endpoint_config = (
             EndpointConfig(name=endpoint_config_diff.new_value, namespace=self.namespace)
             .create()
-            .provision(endpoint=self.name, hosts=[self.body.spec.host])
+            .create_handler(endpoint=self.name, hosts=[self.body.spec.host])
         )
 
         self.endpoint_config.add_finalizers([f"started:{endpoint_config.name}"]).delete()

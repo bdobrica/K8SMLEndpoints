@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Union
 
 from pydantic import BaseModel
 
@@ -17,3 +17,11 @@ class V1Beta1Port(BaseModel):
     name: str = "http"
     number: int
     protocol: str = "HTTP"
+
+
+class V1Beta1Status(BaseModel):
+    apiVersion: str
+    kind: str = "Status"
+    metadata: dict = {}
+    status: str
+    details: dict = {}

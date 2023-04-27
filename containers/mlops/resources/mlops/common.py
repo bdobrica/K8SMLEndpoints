@@ -11,3 +11,19 @@ class V1Beta1ObjectMeta:
     namespace: str
     labels: Dict[str, str] = {}
     finalizers: Dict[str, str] = {}
+
+
+class V1Beta1Status(BaseModel):
+    apiVersion: str
+    kind: str = "Status"
+    metadata: dict = {}
+    status: str
+    details: dict = {}
+
+
+class V1Beta1List(BaseModel):
+    apiVersion: str
+    kind: str
+    metadata: dict = {}
+    items: list = []
+    resourceVersion: str = ""
