@@ -13,7 +13,7 @@ class V1Beta1Api(BaseModel):
     version: str = VERSION
     api: K8SClient.CustomObjectsApi = K8SClient.CustomObjectsApi()
 
-    def get_namespaced(
+    def read_namespaced(
         self,
         name: str,
         namespace: str = "default",
@@ -156,8 +156,8 @@ class V1Beta1Api(BaseModel):
 
         return V1Beta1Status.parse_obj(result)
 
-    def get_namespaced_model(self, name: str, namespace: str = "default") -> Optional[V1Beta1Model]:
-        return self.get_namespaced(name, namespace, MODEL_PLURAL, V1Beta1Model)
+    def read_namespaced_model(self, name: str, namespace: str = "default") -> Optional[V1Beta1Model]:
+        return self.read_namespaced(name, namespace, MODEL_PLURAL, V1Beta1Model)
 
     def create_namespaced_model(
         self, namespace: str = "default", body: Union[dict, V1Beta1Model] = None
@@ -172,8 +172,19 @@ class V1Beta1Api(BaseModel):
     def delete_namespaced_model(self, name: str, namespace: str = "default") -> Optional[V1Beta1Status]:
         return self.delete_namespaced(name, namespace, MODEL_PLURAL)
 
-    def get_namespaced_endpoint_config(self, name: str, namespace: str = "default") -> Optional[V1Beta1EndpointConfig]:
-        return self.get_namespaced(name, namespace, ENDPOINT_CONFIG_PLURAL, V1Beta1EndpointConfig)
+    def read_namespaced_endpoint_config(self, name: str, namespace: str = "default") -> Optional[V1Beta1EndpointConfig]:
+        return self.read_namespaced(name, namespace, ENDPOINT_CONFIG_PLURAL, V1Beta1EndpointConfig)
+
+    def list_namespaced_endpoint_configs(
+        self, namespace: str = "default", field_selector: str = None, label_selector: str = None
+    ) -> List[V1Beta1EndpointConfig]:
+        return self.list_namespaced(
+            namespace=namespace,
+            plural=ENDPOINT_CONFIG_PLURAL,
+            format=V1Beta1EndpointConfig,
+            field_selector=field_selector,
+            label_selector=label_selector,
+        )["items"]
 
     def create_namespaced_endpoint_config(
         self, namespace: str = "default", body: Union[dict, V1Beta1EndpointConfig] = None
@@ -188,8 +199,8 @@ class V1Beta1Api(BaseModel):
     def delete_namespaced_endpoint_config(self, name: str, namespace: str = "default") -> Optional[V1Beta1Status]:
         return self.delete_namespaced(name, namespace, ENDPOINT_CONFIG_PLURAL)
 
-    def get_namespaced_endpoint(self, name: str, namespace: str = "default") -> Optional[V1Beta1Endpoint]:
-        return self.get_namespaced(name, namespace, ENDPOINT_PLURAL, V1Beta1Endpoint)
+    def read_namespaced_endpoint(self, name: str, namespace: str = "default") -> Optional[V1Beta1Endpoint]:
+        return self.read_namespaced(name, namespace, ENDPOINT_PLURAL, V1Beta1Endpoint)
 
     def list_namespaced_endpoints(
         self, namespace: str = "default", field_selector: str = None, label_selector: str = None

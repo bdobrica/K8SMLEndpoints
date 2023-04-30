@@ -35,4 +35,19 @@ spec:
                   items:
                     type: string
               required: ["image"]
+            status:
+              type: object
+              properties:
+                endpoint:
+                  type: string
+                endpoint_config:
+                  type: string
+                endpoint_config_version:
+                  type: string
+                model:
+                  type: string
+                version:
+                  type: string
+                state:
+                  type: string
           required: ["spec"]

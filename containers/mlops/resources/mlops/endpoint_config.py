@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 from resources.mlops.common import GROUP, VERSION, V1Beta1ObjectMeta
@@ -18,7 +18,15 @@ class V1Beta1EndpointConfigModel(BaseModel):
 
 
 class V1Beta1EndpointConfigSpec(BaseModel):
-    models: List[V1Beta1EndpointConfigModel]
+    models: Optional[List[V1Beta1EndpointConfigModel]]
+
+
+class V1Beta1EndpointConfigStatus:
+    endpoint: Optional[str]
+    endpoint_config: Optional[str]
+    version: Optional[str]
+    model_versions: Optional[List[str]]
+    state: Optional[str]
 
 
 class V1Beta1EndpointConfig(BaseModel):
@@ -26,3 +34,4 @@ class V1Beta1EndpointConfig(BaseModel):
     kind: str = ENDPOINT_CONFIG_KIND
     metadata: V1Beta1ObjectMeta
     spec: V1Beta1EndpointConfigSpec
+    status: Optional[V1Beta1EndpointConfigStatus]

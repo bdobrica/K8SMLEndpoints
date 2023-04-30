@@ -27,4 +27,11 @@ spec:
                 host:
                   type: string
               required: [ "config", "host" ]
+            status:
+              type: object
+              properties:
+                endpoint_config_version:
+                  type: string
+                state:
+                  type: string
           required: [ "spec" ]

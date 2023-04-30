@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Iterable, List, Optional, Tuple, Union
 
 from pydantic import BaseModel
 
@@ -19,3 +19,22 @@ class DiffLine(BaseModel):
             old_value=diff_line[2],
             new_value=diff_line[3],
         )
+
+    @staticmethod
+    def from_iter(
+        diff_iter: Iterable[DiffLineType], action: Union[str, List[str]], path: Tuple[str, ...]
+    ) -> Optional["DiffLine"]:
+        if isinstance(action, str):
+            action = [action]
+        try:
+            return next(
+                filter(
+                    lambda line: line.action in action and line.path == path,
+                    map(
+                        lambda line: DiffLine.from_tuple(line),
+                        diff_iter,
+                    ),
+                )
+            )
+        except StopIteration:
+            return None

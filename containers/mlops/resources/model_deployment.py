@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import Any, List, Optional
 
 from kubernetes import client as K8SClient
 from pydantic import BaseModel
@@ -10,12 +10,15 @@ class ModelDeployment(BaseModel):
         self.name = name
         self.namespace = namespace
 
+        self.pvc_name = f"{self.name}-pvc"
+        self.body: Optional[K8SClient.V1Deployment] = None
+
         api = K8SClient.AppsV1Api()
         try:
-            self.deployment = api.read_namespaced_deployment(f"{self.name}-{self.version}", self.namespace)
+            self.body = api.read_namespaced_deployment(name=self.name, namespace=self.namespace)
         except K8SClient.ApiException as err:
             if err.status == 404:
-                self.deployment = None
+                self.body = None
             else:
                 raise
 
@@ -105,7 +108,7 @@ class ModelDeployment(BaseModel):
                             K8SClient.V1Volume(
                                 name=self.name,
                                 persistent_volume_claim=K8SClient.V1PersistentVolumeClaimVolumeSource(
-                                    claim_name=f"{self.name}-pvc",
+                                    claim_name=self.pvc_name,
                                 ),
                             ),
                         ],
@@ -126,7 +129,7 @@ class ModelDeployment(BaseModel):
         args: List[str] = None,
         init_image: str = "quay.io/bdobrica/ml-operator-tools:model-init-latest",
     ) -> "ModelDeployment":
-        if self.deployment is not None:
+        if self.body is not None:
             return self.update()
 
         api = K8SClient.AppsV1Api()
@@ -140,7 +143,7 @@ class ModelDeployment(BaseModel):
             args=args,
             init_image=init_image,
         )
-        self.deployment = api.create_namespaced_deployment(
+        self.body = api.create_namespaced_deployment(
             namespace=self.namespace,
             body=deployment_body,
         )
@@ -158,7 +161,7 @@ class ModelDeployment(BaseModel):
         init_image: str = "quay.io/bdobrica/ml-operator-tools:model-init-latest",
         finalizers: List[str] = None,
     ) -> "ModelDeployment":
-        if self.deployment is None:
+        if self.body is None:
             return self.create()
 
         api = K8SClient.AppsV1Api()
@@ -173,7 +176,7 @@ class ModelDeployment(BaseModel):
             init_image=init_image,
             finalizers=finalizers,
         )
-        self.deployment = api.patch_namespaced_deployment(
+        self.body = api.patch_namespaced_deployment(
             name=self.name,
             namespace=self.namespace,
             body=deployment_body,
@@ -181,14 +184,50 @@ class ModelDeployment(BaseModel):
         return self
 
     def delete(self) -> "ModelDeployment":
-        if self.deployment is None:
+        if self.body is None or self.body.metadata is None:
             return self
 
         api = K8SClient.AppsV1Api()
         api.delete_namespaced_deployment(
-            name=self.name,
-            namespace=self.namespace,
+            name=self.body.metadata.name,
+            namespace=self.body.metadata.namespace,
         )
 
-        self.deployment = None
+        self.body = None
+        return self
+
+    def add_finalizers(self, finalizers: List[str]) -> "ModelDeployment":
+        if self.body is None or not self.body.metadata:
+            return self
+
+        api = K8SClient.AppsV1Api()
+        if not self.body.metadata.finalizers:
+            self.body.metadata.finalizers = []
+
+        for finalizer in finalizers:
+            if finalizer not in self.body.metadata.finalizers:
+                self.body.metadata.finalizers.append(finalizer)
+        self.body = api.patch_namespaced_deployment(
+            name=self.body.metadata.name,
+            namespace=self.body.metadata.namespace,
+            body=self.body,
+        )
+
+        return self
+
+    def remove_finalizers(self, finalizers: List[str]) -> "ModelDeployment":
+        if self.body is None or not self.body.metadata or not self.body.metadata.finalizers:
+            return self
+
+        api = K8SClient.AppsV1Api()
+
+        for finalizer in finalizers:
+            if finalizer in self.body.metadata.finalizers:
+                self.body.metadata.finalizers.remove(finalizer)
+        self.body = api.patch_namespaced_deployment(
+            name=self.body.metadata.name,
+            namespace=self.body.metadata.namespace,
+            body=self.body,
+        )
+
         return self

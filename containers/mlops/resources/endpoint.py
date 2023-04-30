@@ -10,7 +10,7 @@ class Endpoint:
     def __init__(self, name: str, namespace: str = "default"):
         self.name = name
         self.namespace = namespace
-        self.body = MLOpsClient.V1Beta1Api().get_namespaced_endpoint(name=self.name, namespace=self.namespace)
+        self.body = MLOpsClient.V1Beta1Api().read_namespaced_endpoint(name=self.name, namespace=self.namespace)
 
         self.gateway_name = f"{self.name}-gw"
         self.endpoint_config_name = self.body.spec.config
@@ -18,18 +18,38 @@ class Endpoint:
         self.gateway = IstioGateway(name=self.gateway_name, namespace=self.namespace)
         self.endpoint_config = EndpointConfig(name=self.endpoint_config_name, namespace=self.namespace)
 
-    def create(self) -> "Endpoint":
+    def get_body(self, config: str, host: str) -> MLOpsClient.V1Beta1Endpoint:
+        return MLOpsClient.V1Beta1Endpoint(
+            metadata=MLOpsClient.V1Beta1ObjectMeta(name=self.name, namespace=self.namespace),
+            spec=MLOpsClient.V1Beta1EndpointSpec(config=config, host=host),
+        )
+
+    def create(self, config: str, host: str) -> "Endpoint":
+        if self.body:
+            return self
+
+        api = MLOpsClient.V1Beta1Api()
+        body = self.get_body(config=config, host=host)
+        self.body = api.create_namespaced_endpoint(namespace=self.namespace, body=body)
         return self
 
     def delete(self) -> "Endpoint":
+        if not self.body or not self.body.metadata or not self.body.metadata.name:
+            return self
+
+        api = MLOpsClient.V1Beta1Api()
+        api.delete_namespaced_endpoint(name=self.body.metadata.name, namespace=self.namespace)
+        self.body = None
         return self
 
-    def update(self, body: MLOpsClient.V1Beta1Endpoint) -> "Endpoint":
+    def update(self, config: str = None, host: str = None) -> "Endpoint":
         return self
 
     def create_handler(self) -> "Endpoint":
-        self.gateway.create(hosts=[self.body.spec.host], port=8080)
-        self.endpoint_config.create(endpoint=self.name, hosts=[self.body.spec.host])
+        if not self.gateway:
+            self.gateway.create(hosts=[self.body.spec.host], port=8080)
+        if not self.endpoint_config:
+            self.endpoint_config.create(endpoint=self.name, hosts=[self.body.spec.host])
         return self
 
     def delete_handler(self) -> "Endpoint":

@@ -8,7 +8,7 @@ class IstioGateway:
     def __init__(self, name: str, namespace: str = "default") -> None:
         self.name = name
         self.namespace = namespace
-        self.body = IstioClient.V1Beta1Api().get_namespaced_gateway(self.name, self.namespace)
+        self.body = IstioClient.V1Beta1Api().read_namespaced_gateway(self.name, self.namespace)
 
     def get_body(self, hosts: List[str], port: int) -> IstioClient.V1Beta1Gateway:
         return IstioClient.V1Beta1Gateway(
@@ -54,5 +54,42 @@ class IstioGateway:
         api = IstioClient.V1Beta1Api()
         api.delete_namespaced_gateway(name=self.name, namespace=self.namespace)
         self.body = None
+
+        return self
+
+    def add_finalizers(self, finalizers: List[str]) -> "IstioGateway":
+        if not self.body or not self.body.metadata:
+            return self
+
+        api = IstioClient.V1Beta1Api()
+        if not self.body.metadata.finalizers:
+            self.body.metadata.finalizers = []
+
+        for finalizer in finalizers:
+            if finalizer not in self.body.metadata.finalizers:
+                self.body.metadata.finalizers.append(finalizer)
+
+        self.body = api.patch_namespaced_gateway(
+            name=self.body.metadata.name,
+            namespace=self.body.metadata.namespace,
+            body=self.body,
+        )
+
+        return self
+
+    def remove_finalizers(self, finalizers: List[str]) -> "IstioGateway":
+        if not self.body or not self.body.metadata or not self.body.metadata.finalizers:
+            return self
+
+        api = IstioClient.V1Beta1Api()
+        for finalizer in finalizers:
+            if finalizer in self.body.metadata.finalizers:
+                self.body.metadata.finalizers.remove(finalizer)
+
+        self.body = api.patch_namespaced_gateway(
+            name=self.body.metadata.name,
+            namespace=self.body.metadata.namespace,
+            body=self.body,
+        )
 
         return self

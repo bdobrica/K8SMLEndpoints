@@ -12,7 +12,7 @@ class V1Beta1Api(BaseModel):
     version: str = VERSION
     api: K8SClient.CustomObjectsApi = K8SClient.CustomObjectsApi()
 
-    def get_namespaced(
+    def read_namespaced(
         self,
         name: str,
         namespace: str = "default",
@@ -114,8 +114,8 @@ class V1Beta1Api(BaseModel):
 
         return V1Beta1Status.parse_obj(result)
 
-    def get_namespaced_gateway(self, name: str, namespace: str = "default") -> Optional[V1Beta1Gateway]:
-        return self.get_namespaced(name, namespace, GATEWAY_PLURAL, V1Beta1Gateway)
+    def read_namespaced_gateway(self, name: str, namespace: str = "default") -> Optional[V1Beta1Gateway]:
+        return self.read_namespaced(name, namespace, GATEWAY_PLURAL, V1Beta1Gateway)
 
     def create_namespaced_gateway(
         self, namespace: str = "default", body: Union[dict, V1Beta1Gateway] = None
@@ -130,8 +130,8 @@ class V1Beta1Api(BaseModel):
     def delete_namespaced_gateway(self, name: str, namespace: str = "default") -> Optional[V1Beta1Status]:
         return self.delete_namespaced(name, namespace, GATEWAY_PLURAL)
 
-    def get_namespaced_virtual_service(self, name: str, namespace: str = "default") -> Optional[V1Beta1VirtualService]:
-        return self.get_namespaced(name, namespace, VIRTUAL_SERVICE_PLURAL, V1Beta1VirtualService)
+    def read_namespaced_virtual_service(self, name: str, namespace: str = "default") -> Optional[V1Beta1VirtualService]:
+        return self.read_namespaced(name, namespace, VIRTUAL_SERVICE_PLURAL, V1Beta1VirtualService)
 
     def create_namespaced_virtual_service(
         self, namespace: str = "default", body: Union[dict, V1Beta1VirtualService] = None

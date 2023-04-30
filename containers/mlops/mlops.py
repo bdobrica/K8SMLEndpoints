@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 import logging
 import time
+from typing import Tuple
 
 import kopf
 from kubernetes import client as K8SClient
 from kubernetes import config as K8SConfig
 from kubernetes.client.rest import ApiException
 from resources import Endpoint, EndpointConfig, Model
+from utils import DiffLineType
 
 K8SConfig.load_incluster_config()
 
@@ -24,77 +26,83 @@ def ml_endpoint_create_fn(name: str, namespace: str, spec: dict, meta: dict, **k
     logging.info(f"Kwargs: {kwargs}")
 
     try:
-        endpoint = Endpoint(name, namespace).create()
+        _ = Endpoint(name=name, namespace=namespace).create_handler()
     except ApiException as err:
         logging.error(err)
         raise kopf.PermanentError(err)
 
 
 @kopf.on.update("machinelearningendpoint")
-def ml_endpoint_update_fn(name: str, namespace: str, spec: dict, meta: dict, diff: dict, **kwargs):
+def ml_endpoint_update_fn(name: str, namespace: str, diff: Tuple[DiffLineType], **kwargs):
     logging.info(f"Updating endpoint {name} in namespace {namespace}")
-    logging.info(f"Spec: {spec}")
+    logging.info(f"Diff: {diff}")
     logging.info(f"Meta: {meta}")
     logging.info(f"Kwargs: {kwargs}")
 
     try:
-        endpoint = Endpoint(name, namespace).update(diff)
+        _ = Endpoint(name, namespace).update_handler(diff)
     except ApiException as err:
         logging.error(err)
         raise kopf.PermanentError(err)
 
 
 @kopf.on.delete("machinelearningendpoint")
-def ml_endpoint_delete_fn(name: str, namespace: str, spec: dict, meta: dict, diff: dict, **kwargs):
+def ml_endpoint_delete_fn(name: str, namespace: str, **kwargs):
     logging.info(f"Delete endpoint {name} in namespace {namespace}")
-    logging.info(f"Spec: {spec}")
-    logging.info(f"Meta: {meta}")
     logging.info(f"Kwargs: {kwargs}")
 
     try:
-        endpoint = Endpoint(name, namespace).delete()
+        _ = Endpoint(name, namespace).delete_handler()
     except ApiException as err:
         logging.error(err)
         raise kopf.PermanentError(err)
 
 
 @kopf.on.update("machinelearningendpointconfig")
-def ml_endpoint_config_update_fn(name: str, namespace: str, spec: dict, meta: dict, diff: dict, **kwargs):
+def ml_endpoint_config_update_fn(name: str, namespace: str, diff: Tuple[DiffLineType], **kwargs):
     logging.info(f"Updating endpoint config {name} in namespace {namespace}")
-    logging.info(f"Spec: {spec}")
-    logging.info(f"Meta: {meta}")
     logging.info(f"Kwargs: {kwargs}")
 
     try:
-        endpoint_config = EndpointConfig(name, namespace).update(diff)
+        _ = EndpointConfig(name, namespace).update_handler(diff)
+    except ApiException as err:
+        logging.error(err)
+        raise kopf.PermanentError(err)
+
+
+@kopf.on.delete("machinelearningendpointconfig")
+def ml_endpoint_config_delete_fn(name: str, namespace: str, **kwargs):
+    logging.info(f"Delete endpoint config {name} in namespace {namespace}")
+    logging.info(f"Kwargs: {kwargs}")
+
+    try:
+        _ = EndpointConfig(name, namespace).delete_handler()
     except ApiException as err:
         logging.error(err)
         raise kopf.PermanentError(err)
 
 
 @kopf.on.update("machinelearningmodel")
-def ml_model_update_fn(name: str, namespace: str, spec: dict, meta: dict, diff: dict, **kwargs):
+def ml_model_update_fn(name: str, namespace: str, diff: Tuple[DiffLineType], **kwargs):
     logging.info(f"Updating model {name} in namespace {namespace}")
     logging.info(f"Spec: {spec}")
     logging.info(f"Meta: {meta}")
     logging.info(f"Kwargs: {kwargs}")
 
     try:
-        model = Model(name, namespace).update(diff)
+        _ = Model(name, namespace).update_handler(diff)
     except ApiException as err:
         logging.error(err)
         raise kopf.PermanentError(err)
 
 
 @kopf.on.delete("machinelearningmodel")
-def ml_model_delete_fn(name: str, namespace: str, spec: dict, meta: dict, diff: dict, **kwargs):
+def ml_model_delete_fn(name: str, namespace: str, diff: Tuple[DiffLineType], **kwargs):
     logging.info("Delete model {name} in namespace {namespace}")
-    logging.info(f"Spec: {spec}")
-    logging.info(f"Meta: {meta}")
     logging.info(f"Kwargs: {kwargs}")
 
     try:
-        model = Model(name, namespace).delete()
+        _ = Model(name, namespace).delete_handler()
     except ApiException as err:
         logging.error(err)
         raise kopf.PermanentError(err)

@@ -43,4 +43,19 @@ spec:
                         type: string
                     required: [ "model" ]
               required: [ "models" ]
+            status:
+              type: object
+              properties:
+                endpoint:
+                  type: string
+                model_versions:
+                  type: array
+                  items:
+                    type: string
+                endpoint_config:
+                  type: string
+                version:
+                  type: string
+                state:
+                  type: string
           required: [ "spec" ]
