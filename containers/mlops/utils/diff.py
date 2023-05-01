@@ -22,8 +22,11 @@ class DiffLine(BaseModel):
 
     @staticmethod
     def from_iter(
-        diff_iter: Iterable[DiffLineType], action: Union[str, List[str]], path: Tuple[str, ...]
+        diff_iter: Union[Iterable[DiffLineType], None], action: Union[str, List[str]], path: Tuple[str, ...]
     ) -> Optional["DiffLine"]:
+        if diff_iter is None:
+            return None
+
         if isinstance(action, str):
             action = [action]
         try:

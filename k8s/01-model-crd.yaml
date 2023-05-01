@@ -50,4 +50,5 @@ spec:
                   type: string
                 state:
                   type: string
+                  enum: ["creating", "available", "updating", "deleting", "failed"]
           required: ["spec"]

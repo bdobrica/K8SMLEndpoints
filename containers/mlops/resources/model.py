@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from resources.mlops import client as MLOpsClient
 from resources.model_deployment import ModelDeployment
@@ -182,7 +182,7 @@ class Model:
         self.service.create()
         return self
 
-    def update_handler(self, diff: Tuple[DiffLineType, ...]) -> "Model":
+    def update_handler(self, diff: Optional[Tuple[DiffLineType, ...]] = None) -> "Model":
         """
         Some changes should trigger a redeployment (version change)
         - create a copy of the main object with a different version (in k8s, that's why kopf doesn't handle create for this objects)

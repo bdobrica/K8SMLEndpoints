@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from pydantic import BaseModel
-from resources.mlops.common import GROUP, VERSION, V1Beta1ObjectMeta
+from resources.mlops.common import GROUP, VERSION, V1Beta1ObjectMeta, V1Beta1State
 
 ENDPOINT_CONFIG_PLURAL: str = "endpointconfigs"
 ENDPOINT_CONFIG_KIND: str = "EndpointConfig"
@@ -26,7 +26,7 @@ class V1Beta1EndpointConfigStatus:
     endpoint_config: Optional[str]
     version: Optional[str]
     model_versions: Optional[List[str]]
-    state: Optional[str]
+    state: Optional[V1Beta1State]
 
 
 class V1Beta1EndpointConfig(BaseModel):

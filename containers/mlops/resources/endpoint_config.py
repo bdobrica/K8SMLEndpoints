@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from resources.istio_virtual_service import IstioVirtualService
 from resources.mlops import client as MLOpsClient
@@ -22,14 +22,13 @@ class EndpointConfig:
         self.version: str = None
 
         self.virtual_service = IstioVirtualService(self.virtual_service_name, self.namespace)
-        self.variants: List[Model] = self.get_variants()
 
-    def get_variants(self) -> List[Model]:
+    def get_models(self, models: List[Dict[str, str]] = None) -> List[Model]:
         if not self.body:
             return []
 
         variants = []
-        for n, model in enumerate(self.body.spec.models):
+        for n, model in enumerate(models or self.body.spec.models):
             variants.append(
                 Model(
                     name=model.model,
@@ -71,10 +70,44 @@ class EndpointConfig:
         )
         return results[0] if results else None
 
-    def create(self) -> "EndpointConfig":
+    def create(
+        self,
+        models: List[Dict[str, str]],
+        endpoint: Optional[str] = None,
+        model_versions: Optional[List[str]] = None,
+        state: Optional[str] = None,
+    ) -> "EndpointConfig":
+        if self.body:
+            return self
+
+        self.body = self.get_body(
+            models=models,
+            endpoint=endpoint,
+            model_versions=model_versions,
+            state=state,
+        )
+        api = MLOpsClient.V1Beta1Api()
+        self.body = api.create_namespaced_endpoint_config(namespace=self.namespace, body=self.body)
         return self
 
-    def update(self, diff: DiffLineType) -> "EndpointConfig":
+    def update(
+        self,
+        models: List[Dict[str, str]] = None,
+        endpoint: Optional[str] = None,
+        model_versions: Optional[List[str]] = None,
+        state: Optional[str] = None,
+    ) -> "EndpointConfig":
+        if not self.body or not self.body.status or not self.body.status.version:
+            return self
+
+        self.body = self.get_body(
+            models=models or self.body.spec.models,
+            endpoint=endpoint or self.body.status.endpoint,
+            model_versions=model_versions or self.body.status.model_versions,
+            state=state or self.body.status.state,
+        )
+        api = MLOpsClient.V1Beta1Api()
+        self.body = api.patch_namespaced_endpoint_config(name=self.name, namespace=self.namespace, body=self.body)
         return self
 
     def delete(self) -> "EndpointConfig":
@@ -92,42 +125,41 @@ class EndpointConfig:
 
         endpoint = self.get_endpoint()
 
-        variants = []
+        model_versions = []
         destinations = []
-        for n, variant in enumerate(self.variants):
-            new_variant = (
-                Model(name=variant.name, namespace=self.namespace, version=get_version())
+        for n, model in enumerate(self.get_models()):
+            model_ = (
+                Model(name=model.name, namespace=self.namespace, version=get_version())
                 .create(
-                    image=variant.body.spec.image,
-                    artifact=variant.body.spec.artifact,
-                    command=variant.body.spec.command,
-                    args=variant.body.spec.args,
+                    image=model.body.spec.image,
+                    artifact=model.body.spec.artifact,
+                    command=model.body.spec.command,
+                    args=model.body.spec.args,
                     endpoint=self.body.status.endpoint,
                     endpoint_config=self.body.status.endpoint_config,
                     endpoint_config_version=self.body.status.version,
                 )
                 .create_handler()
             )
-            variants.append(new_variant)
+            model_versions.append(model_.body.status.version)
             destinations.append(
                 {
-                    "host": new_variant.named_version,
+                    "host": model_.named_version,
                     "port": 8080,
                     "weight": self.body.spec.models[n].weight,
                 }
             )
-
-        self.variants = variants
 
         self.virtual_service.create(
             gateway=self.body.status.endpoint,
             hosts=[endpoint.spec.host],
             destinations=destinations,
         )
+        self.update(model_versions=model_versions)
 
         return self
 
-    def update_handler(self, diff: DiffLineType) -> "EndpointConfig":
+    def update_handler(self, diff: Optional[Tuple[DiffLineType]] = None) -> "EndpointConfig":
         """
         Update the EndpointConfig. As resources are allocated only when the EndpointConfig is attached to an Endpoint, check if this EndpointConfig is attached to an Endpoint before updating.
         If an endpoint is attached, then:
@@ -140,12 +172,66 @@ class EndpointConfig:
         if not endpoint:
             return self
 
+        models_diff = DiffLine.from_iter(diff, "change", ("spec", "models"))
+        if not models_diff:
+            return self
+
+        new_models = self.get_models(models_diff.new_value)
+        new_model_names = [model.body.status.model for model in new_models]
+        old_models = self.get_models(models_diff.old_value)
+        old_model_names = [model.body.status.model for model in old_models]
+
+        for model in old_models:
+            if model.name not in new_model_names:
+                model.delete_handler().delete()
+
+        model_versions = []
+        destinations = []
+        for n, model in enumerate(new_models):
+            if model.body and model.body.status and model.body.status.model in old_model_names:
+                model_versions.append(model.body.status.version)
+                destinations.append(
+                    {
+                        "host": model.named_version,
+                        "port": 8080,
+                        "weight": self.body.spec.models[n].weight,
+                    }
+                )
+                continue
+            model_ = (
+                Model(name=model.name, namespace=self.namespace, version=get_version())
+                .create(
+                    image=model.body.spec.image,
+                    artifact=model.body.spec.artifact,
+                    command=model.body.spec.command,
+                    args=model.body.spec.args,
+                    endpoint=self.body.status.endpoint,
+                    endpoint_config=self.body.status.endpoint_config,
+                    endpoint_config_version=self.body.status.version,
+                )
+                .create_handler()
+            )
+            model_versions.append(model_.body.status.version)
+            destinations.append(
+                {
+                    "host": model_.named_version,
+                    "port": 8080,
+                    "weight": self.body.spec.models[n].weight,
+                }
+            )
+
+        self.virtual_service.update(
+            gateway=endpoint.name,
+            hosts=[endpoint.spec.host],
+            destinations=destinations,
+        )
+        self.update(model_versions=model_versions)
+
         return self
 
     def delete_handler(self) -> "EndpointConfig":
-        for variant in self.variants:
-            variant.delete()
-        self.variants = []
+        for model in self.get_models():
+            model.delete()
 
         self.virtual_service.delete()
         self.virtual_service = None

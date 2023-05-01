@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from pydantic import BaseModel
-from resources.mlops.common import GROUP, VERSION, V1Beta1ObjectMeta
+from resources.mlops.common import GROUP, VERSION, V1Beta1ObjectMeta, V1Beta1State
 
 MODEL_PLURAL: str = "models"
 MODEL_KIND: str = "Model"
@@ -20,7 +20,7 @@ class V1Beta1ModelStatus(BaseModel):
     endpoint_config_version: Optional[str]
     model: Optional[str]
     version: Optional[str]
-    state: Optional[str]
+    state: Optional[V1Beta1State]
 
 
 class V1Beta1Model(BaseModel):

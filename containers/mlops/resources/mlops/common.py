@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Dict
 
 from pydantic import BaseModel
@@ -27,3 +28,11 @@ class V1Beta1List(BaseModel):
     metadata: dict = {}
     items: list = []
     resourceVersion: str = ""
+
+
+class V1Beta1State(str, Enum):
+    AVAILABLE = "available"
+    CREATING = "creating"
+    UPDATING = "updating"
+    DELETING = "deleting"
+    FAILED = "failed"
