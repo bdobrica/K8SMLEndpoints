@@ -11,7 +11,7 @@ class V1Alpha1ObjectMeta:
     name: str
     namespace: str
     labels: Dict[str, str] = {}
-    finalizers: List[str] = {}
+    finalizers: List[str] = []
 
 
 class V1Alpha1Status(BaseModel):

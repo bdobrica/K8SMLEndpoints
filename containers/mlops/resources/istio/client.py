@@ -7,7 +7,7 @@ from resources.istio.gateway import *
 from resources.istio.virtual_service import *
 
 
-class V1Beta1Api(BaseModel):
+class V1Beta1Api:
     """
     Object for interfacing with the Istio v1beta1 API.
     """

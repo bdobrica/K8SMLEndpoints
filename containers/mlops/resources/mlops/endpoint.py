@@ -16,6 +16,9 @@ class V1Alpha1EndpointStatus(BaseModel):
     endpoint_config_version: Optional[str]
     state: Optional[V1Alpha1State]
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 class V1Alpha1Endpoint(BaseModel):
     apiVersion: str = f"{GROUP}/{VERSION}"
@@ -23,3 +26,6 @@ class V1Alpha1Endpoint(BaseModel):
     metadata: V1Alpha1ObjectMeta
     spec: V1Alpha1EndpointSpec
     status: Optional[V1Alpha1EndpointStatus]
+
+    class Config:
+        arbitrary_types_allowed = True

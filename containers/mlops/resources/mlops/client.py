@@ -8,7 +8,7 @@ from resources.mlops.endpoint_config import *
 from resources.mlops.model import *
 
 
-class V1Alpha1Api(BaseModel):
+class V1Alpha1Api:
     group: str = GROUP
     version: str = VERSION
     api: K8SClient.CustomObjectsApi = K8SClient.CustomObjectsApi()

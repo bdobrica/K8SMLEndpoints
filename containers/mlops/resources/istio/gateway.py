@@ -16,6 +16,9 @@ class V1Beta1Server(BaseModel):
     hosts: List[str]
     port: V1Beta1Port
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 class V1Beta1GatewaySpec(BaseModel):
     """
@@ -24,6 +27,9 @@ class V1Beta1GatewaySpec(BaseModel):
 
     selector: Dict[str, str]
     servers: List[V1Beta1Server]
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class V1Beta1Gateway(BaseModel):
@@ -35,3 +41,6 @@ class V1Beta1Gateway(BaseModel):
     kind: str = GATEWAY_KIND
     metadata: V1Beta1ObjectMeta
     spec: V1Beta1GatewaySpec
+
+    class Config:
+        arbitrary_types_allowed = True

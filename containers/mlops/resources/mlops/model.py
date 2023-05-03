@@ -22,6 +22,9 @@ class V1Alpha1ModelStatus(BaseModel):
     version: Optional[str]
     state: Optional[V1Alpha1State]
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 class V1Alpha1Model(BaseModel):
     apiVersion: str = f"{GROUP}/{VERSION}"
@@ -29,3 +32,6 @@ class V1Alpha1Model(BaseModel):
     metadata: V1Alpha1ObjectMeta
     spec: V1Alpha1ModelSpec
     status: Optional[V1Alpha1ModelStatus]
+
+    class Config:
+        arbitrary_types_allowed = True

@@ -19,6 +19,9 @@ class V1Beta1Route(BaseModel):
     port: V1Beta1Port
     weight: int
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 class V1Beta1Destination(BaseModel):
     """
@@ -27,6 +30,9 @@ class V1Beta1Destination(BaseModel):
     """
 
     route: List[V1Beta1Route]
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class V1Beta1VirtualServiceSpec(BaseModel):
@@ -41,6 +47,9 @@ class V1Beta1VirtualServiceSpec(BaseModel):
     hosts: List[str]
     http: List[V1Beta1Destination]
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 class V1Beta1VirtualService(BaseModel):
     """
@@ -51,3 +60,6 @@ class V1Beta1VirtualService(BaseModel):
     kind: str = VIRTUAL_SERVICE_KIND
     metadata: V1Beta1ObjectMeta
     spec: V1Beta1VirtualServiceSpec
+
+    class Config:
+        arbitrary_types_allowed = True
