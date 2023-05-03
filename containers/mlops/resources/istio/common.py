@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 from pydantic import BaseModel
 
@@ -10,7 +10,7 @@ class V1Beta1ObjectMeta(BaseModel):
     name: str
     namespace: str
     labels: Dict[str] = {}
-    finalizers: Dict[str] = {}
+    finalizers: Listt[str] = {}
 
 
 class V1Beta1Port(BaseModel):
