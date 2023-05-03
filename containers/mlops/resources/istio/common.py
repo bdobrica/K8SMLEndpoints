@@ -10,7 +10,7 @@ class V1Beta1ObjectMeta(BaseModel):
     name: str
     namespace: str
     labels: Dict[str] = {}
-    finalizers: Listt[str] = {}
+    finalizers: List[str] = {}
 
 
 class V1Beta1Port(BaseModel):
