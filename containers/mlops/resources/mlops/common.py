@@ -4,17 +4,17 @@ from typing import Dict
 from pydantic import BaseModel
 
 GROUP: str = "blue.intranet"
-VERSION: str = "v1beta1"
+VERSION: str = "v1alpha1"
 
 
-class V1Beta1ObjectMeta:
+class V1Alpha1ObjectMeta:
     name: str
     namespace: str
     labels: Dict[str, str] = {}
     finalizers: Dict[str, str] = {}
 
 
-class V1Beta1Status(BaseModel):
+class V1Alpha1Status(BaseModel):
     apiVersion: str
     kind: str = "Status"
     metadata: dict = {}
@@ -22,7 +22,7 @@ class V1Beta1Status(BaseModel):
     details: dict = {}
 
 
-class V1Beta1List(BaseModel):
+class V1Alpha1List(BaseModel):
     apiVersion: str
     kind: str
     metadata: dict = {}
@@ -30,7 +30,7 @@ class V1Beta1List(BaseModel):
     resourceVersion: str = ""
 
 
-class V1Beta1State(str, Enum):
+class V1Alpha1State(str, Enum):
     AVAILABLE = "available"
     CREATING = "creating"
     UPDATING = "updating"

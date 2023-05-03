@@ -8,7 +8,7 @@ from resources.mlops.endpoint_config import *
 from resources.mlops.model import *
 
 
-class V1Beta1Api(BaseModel):
+class V1Alpha1Api(BaseModel):
     group: str = GROUP
     version: str = VERSION
     api: K8SClient.CustomObjectsApi = K8SClient.CustomObjectsApi()
@@ -139,7 +139,7 @@ class V1Beta1Api(BaseModel):
         name: str,
         namespace: str = "default",
         plural: str = None,
-    ) -> Optional[V1Beta1Status]:
+    ) -> Optional[V1Alpha1Status]:
         try:
             result = self.api.delete_namespaced_custom_object(
                 self.group,
@@ -154,74 +154,76 @@ class V1Beta1Api(BaseModel):
             else:
                 raise
 
-        return V1Beta1Status.parse_obj(result)
+        return V1Alpha1Status.parse_obj(result)
 
-    def read_namespaced_model(self, name: str, namespace: str = "default") -> Optional[V1Beta1Model]:
-        return self.read_namespaced(name, namespace, MODEL_PLURAL, V1Beta1Model)
+    def read_namespaced_model(self, name: str, namespace: str = "default") -> Optional[V1Alpha1Model]:
+        return self.read_namespaced(name, namespace, MODEL_PLURAL, V1Alpha1Model)
 
     def create_namespaced_model(
-        self, namespace: str = "default", body: Union[dict, V1Beta1Model] = None
-    ) -> V1Beta1Model:
-        return self.create_namespaced(namespace, body, MODEL_PLURAL, V1Beta1Model)
+        self, namespace: str = "default", body: Union[dict, V1Alpha1Model] = None
+    ) -> V1Alpha1Model:
+        return self.create_namespaced(namespace, body, MODEL_PLURAL, V1Alpha1Model)
 
     def patch_namespaced_model(
-        self, name: str, namespace: str = "default", body: Union[dict, V1Beta1Model] = None
-    ) -> V1Beta1Model:
-        return self.patch_namespaced(name, namespace, body, MODEL_PLURAL, V1Beta1Model)
+        self, name: str, namespace: str = "default", body: Union[dict, V1Alpha1Model] = None
+    ) -> V1Alpha1Model:
+        return self.patch_namespaced(name, namespace, body, MODEL_PLURAL, V1Alpha1Model)
 
-    def delete_namespaced_model(self, name: str, namespace: str = "default") -> Optional[V1Beta1Status]:
+    def delete_namespaced_model(self, name: str, namespace: str = "default") -> Optional[V1Alpha1Status]:
         return self.delete_namespaced(name, namespace, MODEL_PLURAL)
 
-    def read_namespaced_endpoint_config(self, name: str, namespace: str = "default") -> Optional[V1Beta1EndpointConfig]:
-        return self.read_namespaced(name, namespace, ENDPOINT_CONFIG_PLURAL, V1Beta1EndpointConfig)
+    def read_namespaced_endpoint_config(
+        self, name: str, namespace: str = "default"
+    ) -> Optional[V1Alpha1EndpointConfig]:
+        return self.read_namespaced(name, namespace, ENDPOINT_CONFIG_PLURAL, V1Alpha1EndpointConfig)
 
     def list_namespaced_endpoint_configs(
         self, namespace: str = "default", field_selector: str = None, label_selector: str = None
-    ) -> List[V1Beta1EndpointConfig]:
+    ) -> List[V1Alpha1EndpointConfig]:
         return self.list_namespaced(
             namespace=namespace,
             plural=ENDPOINT_CONFIG_PLURAL,
-            format=V1Beta1EndpointConfig,
+            format=V1Alpha1EndpointConfig,
             field_selector=field_selector,
             label_selector=label_selector,
         )["items"]
 
     def create_namespaced_endpoint_config(
-        self, namespace: str = "default", body: Union[dict, V1Beta1EndpointConfig] = None
-    ) -> V1Beta1EndpointConfig:
-        return self.create_namespaced(namespace, body, ENDPOINT_CONFIG_PLURAL, V1Beta1EndpointConfig)
+        self, namespace: str = "default", body: Union[dict, V1Alpha1EndpointConfig] = None
+    ) -> V1Alpha1EndpointConfig:
+        return self.create_namespaced(namespace, body, ENDPOINT_CONFIG_PLURAL, V1Alpha1EndpointConfig)
 
     def patch_namespaced_endpoint_config(
-        self, name: str, namespace: str = "default", body: Union[dict, V1Beta1EndpointConfig] = None
-    ) -> V1Beta1EndpointConfig:
-        return self.patch_namespaced(name, namespace, body, ENDPOINT_CONFIG_PLURAL, V1Beta1EndpointConfig)
+        self, name: str, namespace: str = "default", body: Union[dict, V1Alpha1EndpointConfig] = None
+    ) -> V1Alpha1EndpointConfig:
+        return self.patch_namespaced(name, namespace, body, ENDPOINT_CONFIG_PLURAL, V1Alpha1EndpointConfig)
 
-    def delete_namespaced_endpoint_config(self, name: str, namespace: str = "default") -> Optional[V1Beta1Status]:
+    def delete_namespaced_endpoint_config(self, name: str, namespace: str = "default") -> Optional[V1Alpha1Status]:
         return self.delete_namespaced(name, namespace, ENDPOINT_CONFIG_PLURAL)
 
-    def read_namespaced_endpoint(self, name: str, namespace: str = "default") -> Optional[V1Beta1Endpoint]:
-        return self.read_namespaced(name, namespace, ENDPOINT_PLURAL, V1Beta1Endpoint)
+    def read_namespaced_endpoint(self, name: str, namespace: str = "default") -> Optional[V1Alpha1Endpoint]:
+        return self.read_namespaced(name, namespace, ENDPOINT_PLURAL, V1Alpha1Endpoint)
 
     def list_namespaced_endpoints(
         self, namespace: str = "default", field_selector: str = None, label_selector: str = None
-    ) -> List[V1Beta1Endpoint]:
+    ) -> List[V1Alpha1Endpoint]:
         return self.list_namespaced(
             namespace=namespace,
             plural=ENDPOINT_PLURAL,
-            format=V1Beta1Endpoint,
+            format=V1Alpha1Endpoint,
             field_selector=field_selector,
             label_selector=label_selector,
         )["items"]
 
     def create_namespaced_endpoint(
-        self, namespace: str = "default", body: Union[dict, V1Beta1Endpoint] = None
-    ) -> V1Beta1Endpoint:
-        return self.create_namespaced(namespace, body, ENDPOINT_PLURAL, V1Beta1Endpoint)
+        self, namespace: str = "default", body: Union[dict, V1Alpha1Endpoint] = None
+    ) -> V1Alpha1Endpoint:
+        return self.create_namespaced(namespace, body, ENDPOINT_PLURAL, V1Alpha1Endpoint)
 
     def patch_namespaced_endpoint(
-        self, name: str, namespace: str = "default", body: Union[dict, V1Beta1Endpoint] = None
-    ) -> V1Beta1Endpoint:
-        return self.patch_namespaced(name, namespace, body, ENDPOINT_PLURAL, V1Beta1Endpoint)
+        self, name: str, namespace: str = "default", body: Union[dict, V1Alpha1Endpoint] = None
+    ) -> V1Alpha1Endpoint:
+        return self.patch_namespaced(name, namespace, body, ENDPOINT_PLURAL, V1Alpha1Endpoint)
 
-    def delete_namespaced_endpoint(self, name: str, namespace: str = "default") -> Optional[V1Beta1Status]:
+    def delete_namespaced_endpoint(self, name: str, namespace: str = "default") -> Optional[V1Alpha1Status]:
         return self.delete_namespaced(name, namespace, ENDPOINT_PLURAL)

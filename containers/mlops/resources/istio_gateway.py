@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 from kubernetes import client as K8SClient
 from resources.istio import client as IstioClient
@@ -10,11 +10,11 @@ class IstioGateway:
         self.namespace = namespace
         self.body = IstioClient.V1Beta1Api().read_namespaced_gateway(self.name, self.namespace)
 
-    def get_body(self, hosts: List[str], port: int) -> IstioClient.V1Beta1Gateway:
+    def get_body(self, labels: Dict[str, str], hosts: List[str], port: int) -> IstioClient.V1Beta1Gateway:
         return IstioClient.V1Beta1Gateway(
             metadata=IstioClient.V1Beta1ObjectMeta(name=self.name, namespace=self.namespace),
             spec=IstioClient.V1Beta1GatewaySpec(
-                selector=IstioClient.V1Beta1GatewaySpecSelector(istio="ingressgateway"),
+                selector=labels,
                 servers=[
                     IstioClient.V1Beta1Server(
                         hosts=hosts,
@@ -28,22 +28,22 @@ class IstioGateway:
             ),
         )
 
-    def create(self, hosts: List[str], port: int) -> "IstioGateway":
+    def create(self, labels: Dict[str, str], hosts: List[str], port: int) -> "IstioGateway":
         if self.body:
             return self.update(hosts=hosts, port=port)
 
         api = IstioClient.V1Beta1Api()
-        body = self.get_body(hosts=hosts, port=port)
+        body = self.get_body(labels=labels, hosts=hosts, port=port)
         self.body = api.create_namespaced_gateway(namespace=self.namespace, body=body)
 
         return self
 
-    def update(self, hosts: List[str], port: int) -> "IstioGateway":
+    def update(self, labels: Dict[str, str], hosts: List[str], port: int) -> "IstioGateway":
         if not self.body:
             return self.create(hosts=hosts, port=port)
 
         api = IstioClient.V1Beta1Api()
-        body = self.get_body(hosts=hosts, port=port)
+        body = self.get_body(labels=labels, hosts=hosts, port=port)
         self.body = api.patch_namespaced_gateway(name=self.name, namespace=self.namespace, body=body)
         return self
 

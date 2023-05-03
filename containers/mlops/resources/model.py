@@ -22,7 +22,7 @@ class Model:
         self.version: str = version
         self.named_version: str = f"{self.name}-{self.version}" if self.version else self.name
 
-        self.body = MLOpsClient.V1Beta1Api().read_namespaced_model(
+        self.body = MLOpsClient.V1Alpha1Api().read_namespaced_model(
             name=self.named_version,
             namespace=namespace,
         )
@@ -48,9 +48,9 @@ class Model:
         endpoint_config: str = None,
         endpoint_config_version: str = None,
         state: str = None,
-    ) -> MLOpsClient.V1Beta1Model:
-        return MLOpsClient.V1Beta1Model(
-            metadata=MLOpsClient.V1Beta1ObjectMeta(
+    ) -> MLOpsClient.V1Alpha1Model:
+        return MLOpsClient.V1Alpha1Model(
+            metadata=MLOpsClient.V1Alpha1ObjectMeta(
                 name=self.named_version,
                 namespace=self.namespace,
                 labels={
@@ -58,13 +58,13 @@ class Model:
                     "version": self.version,
                 },
             ),
-            spec=MLOpsClient.V1Beta1ModelSpec(
+            spec=MLOpsClient.V1Alpha1ModelSpec(
                 image=image,
                 artifact=artifact,
                 command=command,
                 args=args,
             ),
-            status=MLOpsClient.V1Beta1ModelStatus(
+            status=MLOpsClient.V1Alpha1ModelStatus(
                 endpoint=endpoint,
                 endpoint_config=endpoint_config,
                 endpoint_config_version=endpoint_config_version,
@@ -74,11 +74,11 @@ class Model:
             ),
         )
 
-    def get_endpoint_config(self) -> MLOpsClient.V1Beta1EndpointConfig:
+    def get_endpoint_config(self) -> MLOpsClient.V1Alpha1EndpointConfig:
         if not any([self.body, self.deployment, self.service, self.storage.pv, self.storage.pvc]):
             return None
 
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         results = api.list_namespaced_endpoint_configs(
             namespace=self.namespace,
             field_selector=(
@@ -101,7 +101,7 @@ class Model:
         if self.body:
             return self
 
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         body = self.get_body(
             image=image,
             artifact=artifact,
@@ -129,7 +129,7 @@ class Model:
         if not self.body:
             return self
 
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         body = self.get_body(
             image=image or self.body.spec.image,
             artifact=artifact or self.body.spec.artifact,
@@ -147,7 +147,7 @@ class Model:
         if not self.body:
             return self
 
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         api.delete_namespaced_model(name=self.name, namespace=self.namespace)
         self.body = None
         return self
@@ -263,7 +263,7 @@ class Model:
         return self
 
     def add_finalizers(self, finalizers: List[str]) -> "Model":
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         for finalizer in finalizers:
             if finalizer not in self.body.metadata.finalizers:
                 self.body.metadata.finalizers.append(finalizer)
@@ -271,7 +271,7 @@ class Model:
         return self
 
     def remove_finalizers(self, finalizers: List[str]) -> "Model":
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         for finalizer in finalizers:
             if finalizer in self.body.metadata.finalizers:
                 self.body.metadata.finalizers.remove(finalizer)

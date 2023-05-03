@@ -13,7 +13,7 @@ class EndpointConfig:
         self.version: str = version
         self.named_version: str = f"{self.name}-{self.version}" if self.version else self.name
 
-        self.body = MLOpsClient.V1Beta1Api().read_namespaced_endpoint_config(name=self.name, namespace=self.namespace)
+        self.body = MLOpsClient.V1Alpha1Api().read_namespaced_endpoint_config(name=self.name, namespace=self.namespace)
         if self.body:
             self.name = self.body.status.endpoint_config
             self.version = self.body.status.version
@@ -44,13 +44,13 @@ class EndpointConfig:
         endpoint: Optional[str] = None,
         model_versions: Optional[List[str]] = None,
         state: Optional[str] = None,
-    ) -> MLOpsClient.V1Beta1EndpointConfig:
-        return MLOpsClient.V1Beta1EndpointConfig(
-            metadata=MLOpsClient.V1Beta1ObjectMeta(name=self.name, namespace=self.namespace),
-            spec=MLOpsClient.V1Beta1EndpointConfigSpec(
-                models=[MLOpsClient.V1Beta1EndpointConfigModel.parse_obj(model) for model in (models or [])]
+    ) -> MLOpsClient.V1Alpha1EndpointConfig:
+        return MLOpsClient.V1Alpha1EndpointConfig(
+            metadata=MLOpsClient.V1Alpha1ObjectMeta(name=self.name, namespace=self.namespace),
+            spec=MLOpsClient.V1Alpha1EndpointConfigSpec(
+                models=[MLOpsClient.V1Alpha1EndpointConfigModel.parse_obj(model) for model in (models or [])]
             ),
-            status=MLOpsClient.V1Beta1EndpointConfigStatus(
+            status=MLOpsClient.V1Alpha1EndpointConfigStatus(
                 endpoint=endpoint,
                 endpoint_config=self.name,
                 version=self.version,
@@ -59,11 +59,11 @@ class EndpointConfig:
             ),
         )
 
-    def get_endpoint(self) -> MLOpsClient.V1Beta1Endpoint:
+    def get_endpoint(self) -> MLOpsClient.V1Alpha1Endpoint:
         if not any([self.body, self.virtual_service]):
             return None
 
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         results = api.list_namespaced_endpoints(
             namespace=self.namespace,
             field_selector=(f"metadata.name={self.body.status.endpoint}"),
@@ -86,7 +86,7 @@ class EndpointConfig:
             model_versions=model_versions,
             state=state,
         )
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         self.body = api.create_namespaced_endpoint_config(namespace=self.namespace, body=self.body)
         return self
 
@@ -106,7 +106,7 @@ class EndpointConfig:
             model_versions=model_versions or self.body.status.model_versions,
             state=state or self.body.status.state,
         )
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         self.body = api.patch_namespaced_endpoint_config(name=self.name, namespace=self.namespace, body=self.body)
         return self
 
@@ -114,7 +114,7 @@ class EndpointConfig:
         if not self.body:
             return self
 
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         api.delete_namespaced_endpoint_config(name=self.name, namespace=self.namespace)
         self.body = None
         return self
@@ -246,7 +246,7 @@ class EndpointConfig:
         else:
             self.body.metadata.finalizers = finalizers
 
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         self.body = api.patch_namespaced_endpoint_config(name=self.name, namespace=self.namespace, body=self.body)
 
         return self
@@ -257,7 +257,7 @@ class EndpointConfig:
                 if finalizer in self.body.metadata.finalizers:
                     self.body.metadata.finalizers.remove(finalizer)
 
-        api = MLOpsClient.V1Beta1Api()
+        api = MLOpsClient.V1Alpha1Api()
         self.body = api.patch_namespaced_endpoint_config(name=self.name, namespace=self.namespace, body=self.body)
 
         return self

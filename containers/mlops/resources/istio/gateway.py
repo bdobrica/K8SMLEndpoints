@@ -1,18 +1,10 @@
-from typing import List
+from typing import Dict, List
 
 from pydantic import BaseModel
 from resources.istio.common import GROUP, VERSION, V1Beta1ObjectMeta, V1Beta1Port
 
 GATEWAY_PLURAL: str = "gateways"
 GATEWAY_KIND: str = "Gateway"
-
-
-class V1Beta1GatewaySpecSelector(BaseModel):
-    """
-    One or more labels that indicate a specific set of pods/VMs on which this gateway configuration should be applied. By default workloads are searched across all namespaces based on label selectors.
-    """
-
-    istio: str = "ingressgateway"
 
 
 class V1Beta1Server(BaseModel):
@@ -30,7 +22,7 @@ class V1Beta1GatewaySpec(BaseModel):
     The specification for the gateway.
     """
 
-    selector: V1Beta1GatewaySpecSelector
+    selector: Dict[str, str]
     servers: List[V1Beta1Server]
 
 
