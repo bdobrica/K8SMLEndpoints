@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict
+from typing import Dict, List
 
 from pydantic import BaseModel
 
@@ -11,7 +11,7 @@ class V1Alpha1ObjectMeta:
     name: str
     namespace: str
     labels: Dict[str, str] = {}
-    finalizers: Dict[str, str] = {}
+    finalizers: List[str] = {}
 
 
 class V1Alpha1Status(BaseModel):
