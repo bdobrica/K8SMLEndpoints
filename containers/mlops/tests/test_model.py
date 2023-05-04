@@ -1,4 +1,7 @@
+from kubernetes import config as K8SConfig
 from resources.model import Model
+
+K8SConfig.load_incluster_config()
 
 
 def test_model_create():
