@@ -1,11 +1,9 @@
 from typing import Any, List, Optional
 
 from kubernetes import client as K8SClient
-from pydantic import BaseModel
-from resources.model_storage import ModelStorage
 
 
-class ModelDeployment(BaseModel):
+class ModelDeployment:
     def __init__(self, name: str, namespace: str):
         self.name = name
         self.namespace = namespace
