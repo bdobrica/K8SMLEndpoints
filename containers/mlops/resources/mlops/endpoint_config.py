@@ -24,7 +24,7 @@ class V1Alpha1EndpointConfigSpec(BaseModel):
         arbitrary_types_allowed = True
 
 
-class V1Alpha1EndpointConfigStatus:
+class V1Alpha1EndpointConfigStatus(BaseModel):
     endpoint: Optional[str]
     endpoint_config: Optional[str]
     version: Optional[str]
