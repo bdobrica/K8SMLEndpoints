@@ -1,4 +1,4 @@
-from mlops.resources.model import Model
+from resources.model import Model
 
 
 def test_model_create():
@@ -8,3 +8,8 @@ def test_model_create():
     )
     assert model.body.spec.image == "quay.io/bdobrica/ml-operator-tools:model-latest"
     assert model.body.spec.artifact == "https://ublo.ro/wp-content/friends/titanic.tar.gz"
+
+
+def test_model_delete():
+    model = Model(name="titanic-rfc", namespace="titanic").delete()
+    assert model.body is None
