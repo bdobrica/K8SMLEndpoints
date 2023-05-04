@@ -26,7 +26,7 @@ class Model:
             name=self.named_version,
             namespace=namespace,
         )
-        if self.body:
+        if self.body and self.body.status:
             self.name = self.body.status.model
             self.version = self.body.status.version
 
