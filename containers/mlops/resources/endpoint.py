@@ -13,6 +13,7 @@ class Endpoint:
         self.body = MLOpsClient.V1Alpha1Api().read_namespaced_endpoint(name=self.name, namespace=self.namespace)
 
         self.gateway_name = f"{self.name}-gw"
+        self.endpoint_config_name = None
         if self.body and self.body.spec:
             self.endpoint_config_name = self.body.spec.config
 
