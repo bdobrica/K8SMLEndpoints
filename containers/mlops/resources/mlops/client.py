@@ -22,6 +22,8 @@ class V1Alpha1Api:
         plural: str = None,
         format: Type[BaseModel] = None,
     ) -> Optional[Union[BaseModel, dict]]:
+        if name is None:
+            return None
         try:
             result = self.api.get_namespaced_custom_object(
                 self.group,

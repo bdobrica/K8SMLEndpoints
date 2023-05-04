@@ -33,6 +33,8 @@ class V1Beta1Api:
         @param format: Pydantic model to parse the result into. If not provided, the raw dict will be returned.
         @return: The resource if it exists in dict or pydantic format (if format was passed), None otherwise.
         """
+        if name is None:
+            return None
         try:
             result = self.api.get_namespaced_custom_object(
                 self.group,
