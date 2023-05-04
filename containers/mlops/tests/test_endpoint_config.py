@@ -8,7 +8,7 @@ def test_endpoint_config():
     endpoint_config = EndpointConfig(name="titanic-rfc", namespace="titanic").create(
         models=[
             {
-                "name": "titanic-rfc",
+                "model": "titanic-rfc",
                 "weight": 42,
                 "cpus": "100m",
                 "memory": "100Mi",
