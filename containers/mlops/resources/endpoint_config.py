@@ -18,8 +18,7 @@ class EndpointConfig:
             self.name = self.body.status.endpoint_config
             self.version = self.body.status.version
 
-        self.virtual_service_name: str = None
-        self.version: str = None
+        self.virtual_service_name: str = self.named_version
 
         self.virtual_service = IstioVirtualService(self.virtual_service_name, self.namespace)
 
