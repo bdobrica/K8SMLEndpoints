@@ -3,8 +3,8 @@ from typing import Optional
 from pydantic import BaseModel
 from resources.mlops.common import GROUP, VERSION, V1Alpha1ObjectMeta, V1Alpha1State
 
-ENDPOINT_PLURAL: str = "endpoints"
-ENDPOINT_KIND: str = "Endpoint"
+ENDPOINT_PLURAL: str = "machinelearningendpoints"
+ENDPOINT_KIND: str = "MachineLearningEndpoint"
 
 
 class V1Alpha1EndpointSpec(BaseModel):

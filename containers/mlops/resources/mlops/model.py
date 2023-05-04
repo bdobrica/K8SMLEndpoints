@@ -3,8 +3,8 @@ from typing import List, Optional
 from pydantic import BaseModel
 from resources.mlops.common import GROUP, VERSION, V1Alpha1ObjectMeta, V1Alpha1State
 
-MODEL_PLURAL: str = "models"
-MODEL_KIND: str = "Model"
+MODEL_PLURAL: str = "machinelearningmodels"
+MODEL_KIND: str = "MachineLearningModel"
 
 
 class V1Alpha1ModelSpec(BaseModel):

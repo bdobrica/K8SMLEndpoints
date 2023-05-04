@@ -3,8 +3,8 @@ from typing import List, Optional
 from pydantic import BaseModel
 from resources.mlops.common import GROUP, VERSION, V1Alpha1ObjectMeta, V1Alpha1State
 
-ENDPOINT_CONFIG_PLURAL: str = "endpointconfigs"
-ENDPOINT_CONFIG_KIND: str = "EndpointConfig"
+ENDPOINT_CONFIG_PLURAL: str = "machinelearningendpointconfigs"
+ENDPOINT_CONFIG_KIND: str = "MachineLearningEndpointConfig"
 
 
 class V1Alpha1EndpointConfigModel(BaseModel):
