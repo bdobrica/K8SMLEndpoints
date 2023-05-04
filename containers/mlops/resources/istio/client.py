@@ -14,7 +14,9 @@ class V1Beta1Api:
 
     group: str = GROUP
     version: str = VERSION
-    api: K8SClient.CustomObjectsApi = K8SClient.CustomObjectsApi()
+
+    def __init__(self, api: K8SClient.CustomObjectsApi = None) -> None:
+        self.api = api or K8SClient.CustomObjectsApi()
 
     def read_namespaced(
         self,
