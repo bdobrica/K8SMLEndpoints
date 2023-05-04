@@ -7,7 +7,7 @@ GROUP: str = "blue.intranet"
 VERSION: str = "v1alpha1"
 
 
-class V1Alpha1ObjectMeta:
+class V1Alpha1ObjectMeta(BaseModel):
     name: str
     namespace: str
     labels: Dict[str, str] = {}
