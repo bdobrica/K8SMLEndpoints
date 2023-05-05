@@ -21,11 +21,8 @@ def test_model_deployment_create():
     assert model_deployment.body.spec.template.spec.containers[0].resources.requests["memory"] == "100Mi"
     assert model_deployment.body.spec.template.spec.containers[0].volume_mounts[0].name == "titanic-rfc"
     assert model_deployment.body.spec.template.spec.containers[0].volume_mounts[0].mount_path == "/opt/ml"
-    assert model_deployment.body.spec.template.spec.volume_mounts[0].name == "titanic-rfc"
-    assert (
-        model_deployment.body.spec.template.spec.volume_mounts[0].persistent_volume_claim.claim_name
-        == "titanic-rfc-pvc"
-    )
+    assert model_deployment.body.spec.template.spec.volumes[0].name == "titanic-rfc"
+    assert model_deployment.body.spec.template.spec.volumes[0].persistent_volume_claim.claim_name == "titanic-rfc-pvc"
 
 
 def test_model_deployment_delete():
