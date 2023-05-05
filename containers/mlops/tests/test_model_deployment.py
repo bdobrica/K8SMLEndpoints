@@ -7,7 +7,7 @@ def test_model_deployment_create():
         instances=2,
         artifact="https://ublo.ro/wp-content/friends/titanic.tar.gz",
         image="quay.io/bdobrica/ml-operator-tools:model-latest",
-        cpus="0.1",
+        cpus="100m",
         memory="100Mi",
         init_image="quay.io/bdobrica/ml-operator-tools:model-init-latest",
     )
@@ -17,7 +17,7 @@ def test_model_deployment_create():
         model_deployment.body.spec.template.spec.containers[0].image
         == "quay.io/bdobrica/ml-operator-tools:model-latest"
     )
-    assert model_deployment.body.spec.template.spec.containers[0].resources.requests["cpu"] == "0.1"
+    assert model_deployment.body.spec.template.spec.containers[0].resources.requests["cpu"] == "100m"
     assert model_deployment.body.spec.template.spec.containers[0].resources.requests["memory"] == "100Mi"
     assert model_deployment.body.spec.template.spec.containers[0].volume_mounts[0].name == "titanic-rfc"
     assert model_deployment.body.spec.template.spec.containers[0].volume_mounts[0].mount_path == "/opt/ml"
