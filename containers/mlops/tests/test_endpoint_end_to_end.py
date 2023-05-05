@@ -30,3 +30,5 @@ def test_endpoint_config_create():
         )
         .create_handler()
     )
+    endpoint_config.create_handler()
+    model.create_handler()
