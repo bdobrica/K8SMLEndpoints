@@ -1,6 +1,8 @@
 from kubernetes import config as K8SConfig
 from resources import Endpoint, EndpointConfig, Model
 
+K8SConfig.load_incluster_config()
+
 
 def test_endpoint_config_create():
     model = Model(name="titanic-rfc", namespace="titanic").create(
