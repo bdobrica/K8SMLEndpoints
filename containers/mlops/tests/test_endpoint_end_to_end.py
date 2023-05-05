@@ -23,7 +23,7 @@ def test_endpoint_config_create():
     endpoint = (
         Endpoint(name="titanic-rfc", namespace="titanic")
         .create(
-            endpoint_config="titanic-rfc",
+            config="titanic-rfc",
             host="titanic-rfc.titanic.svc.cluster.local",
         )
         .create_handler()
