@@ -118,7 +118,7 @@ class ModelStorage:
                 namespace=self.pvc.metadata.namespace,
             )
             self.pvc = None
-        if self.pv and self.pvc.metadata:
+        if self.pv and self.pv.metadata:
             api.delete_persistent_volume(name=self.pv.metadata.name)
             self.pv = None
         return self
