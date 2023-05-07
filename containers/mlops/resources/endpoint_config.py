@@ -91,16 +91,22 @@ class EndpointConfig:
         self.body = api.create_namespaced_endpoint_config(namespace=self.namespace, body=self.body)
         return self
 
-    def clone(self):
+    def clone(
+        self,
+        models: List[Dict[str, str]],
+        endpoint: Optional[str] = None,
+        model_versions: Optional[List[str]] = None,
+        state: Optional[str] = None,
+    ):
         return EndpointConfig(
             name=self.name,
             namespace=self.namespace,
             version=get_version(),
         ).create(
-            models=[model.dict() for model in self.body.spec.models],
-            endpoint=self.body.status.endpoint if self.body and self.body.status else None,
-            model_versions=None,
-            state=None,
+            models=models or [model.dict() for model in self.body.spec.models],
+            endpoint=endpoint or (self.body.status.endpoint if self.body and self.body.status else None),
+            model_versions=model_versions,
+            state=state,
         )
 
     def update(

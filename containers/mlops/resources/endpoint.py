@@ -32,7 +32,7 @@ class Endpoint:
             return self
 
         api = MLOpsClient.V1Alpha1Api()
-        endpoint_config = EndpointConfig(name=config, namespace=self.namespace).clone()
+        endpoint_config = EndpointConfig(name=config, namespace=self.namespace).clone(endpoint=self.name)
 
         body = self.get_body(config=config, host=host, config_version=endpoint_config.body.metadata.name)
         self.body = api.create_namespaced_endpoint(namespace=self.namespace, body=body)
