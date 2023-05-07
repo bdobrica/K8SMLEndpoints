@@ -32,7 +32,9 @@ class EndpointConfig:
                 Model(
                     name=model.model,
                     namespace=self.namespace,
-                    version=self.body.status.model_versions[n] if len(self.body.status.model_versions) > n else None,
+                    version=self.body.status.model_versions[n]
+                    if self.body and self.body.status and len(self.body.status.model_versions or []) > n
+                    else None,
                 )
             )
         return variants
