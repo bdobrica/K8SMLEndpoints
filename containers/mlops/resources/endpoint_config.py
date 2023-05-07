@@ -33,11 +33,10 @@ class EndpointConfig:
         for n, model in enumerate(models or self.body.spec.models):
             variants.append(
                 Model(
-                    name=model.model,
-                    namespace=self.namespace,
-                    version=self.body.status.model_versions[n]
+                    name=self.body.status.model_versions[n]
                     if self.body and self.body.status and len(self.body.status.model_versions or []) > n
-                    else None,
+                    else model.model,
+                    namespace=self.namespace,
                 )
             )
         return variants
@@ -158,20 +157,16 @@ class EndpointConfig:
         model_versions = []
         destinations = []
         for n, model in enumerate(self.get_models()):
-            model_ = (
-                Model(name=model.name, namespace=self.namespace, version=get_version())
-                .create(
-                    image=model.body.spec.image,
-                    artifact=model.body.spec.artifact,
-                    command=model.body.spec.command,
-                    args=model.body.spec.args,
-                    endpoint=self.body.status.endpoint,
-                    endpoint_config=self.body.status.endpoint_config,
-                    endpoint_config_version=self.body.metadata.name,
-                )
-                .create_handler()
+            model_ = Model(name=model.name, namespace=self.namespace, version=get_version()).create(
+                image=model.body.spec.image,
+                artifact=model.body.spec.artifact,
+                command=model.body.spec.command,
+                args=model.body.spec.args,
+                endpoint=self.body.status.endpoint,
+                endpoint_config=self.body.status.endpoint_config,
+                endpoint_config_version=self.body.metadata.name,
             )
-            model_versions.append(model_.body.status.version)
+            model_versions.append(model_.body.metadata.name)
             destinations.append(
                 {
                     "host": model_.named_version,
@@ -213,13 +208,13 @@ class EndpointConfig:
 
         for model in old_models:
             if model.name not in new_model_names:
-                model.delete_handler().delete()
+                model.delete()
 
         model_versions = []
         destinations = []
         for n, model in enumerate(new_models):
             if model.body and model.body.status and model.body.status.model in old_model_names:
-                model_versions.append(model.body.status.version)
+                model_versions.append(model.body.metadata.name)
                 destinations.append(
                     {
                         "host": model.named_version,
@@ -228,20 +223,16 @@ class EndpointConfig:
                     }
                 )
                 continue
-            model_ = (
-                Model(name=model.name, namespace=self.namespace, version=get_version())
-                .create(
-                    image=model.body.spec.image,
-                    artifact=model.body.spec.artifact,
-                    command=model.body.spec.command,
-                    args=model.body.spec.args,
-                    endpoint=self.body.status.endpoint,
-                    endpoint_config=self.body.status.endpoint_config,
-                    endpoint_config_version=self.body.status.version,
-                )
-                .create_handler()
+            model_ = Model(name=model.body.status.model, namespace=self.namespace, version=get_version()).create(
+                image=model.body.spec.image,
+                artifact=model.body.spec.artifact,
+                command=model.body.spec.command,
+                args=model.body.spec.args,
+                endpoint=self.body.status.endpoint,
+                endpoint_config=self.body.status.endpoint_config,
+                endpoint_config_version=self.body.status.version,
             )
-            model_versions.append(model_.body.status.version)
+            model_versions.append(model_.body.metadata.name)
             destinations.append(
                 {
                     "host": model_.named_version,
