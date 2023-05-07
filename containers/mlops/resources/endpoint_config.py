@@ -101,6 +101,7 @@ class EndpointConfig:
         model_versions: Optional[List[str]] = None,
         state: Optional[str] = None,
     ):
+        print("cloning endpoint config")
         return EndpointConfig(
             name=self.name,
             namespace=self.namespace,
