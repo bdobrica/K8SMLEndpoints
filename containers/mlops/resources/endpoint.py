@@ -67,14 +67,19 @@ class Endpoint:
         if not self.body:
             return self
 
-        if not self.gateway:
+        if not self.gateway or not self.gateway.body:
             self.gateway = IstioGateway(name=self.gateway_name, namespace=self.body.metadata.namespace).create(
                 labels={"endpoint": self.body.metadata.name},
                 hosts=[self.body.spec.host],
                 port=8080,
             )
 
-        if not self.endpoint_config:
+        if (
+            not self.endpoint_config
+            or not self.endpoint_config.body
+            or not self.endpoint_config.body.status
+            or self.endpoint_config.body.status.endpoint != self.body.metadata.name
+        ):
             self.endpoint_config = EndpointConfig(
                 name=self.body.spec.config, namespace=self.body.metadata.namespace
             ).clone(endpoint=self.body.metadata.name)
