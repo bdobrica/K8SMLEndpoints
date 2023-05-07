@@ -50,7 +50,14 @@ class EndpointConfig:
         state: Optional[str] = None,
     ) -> MLOpsClient.V1Alpha1EndpointConfig:
         return MLOpsClient.V1Alpha1EndpointConfig(
-            metadata=MLOpsClient.V1Alpha1ObjectMeta(name=self.name, namespace=self.namespace),
+            metadata=MLOpsClient.V1Alpha1ObjectMeta(
+                name=self.named_version,
+                namespace=self.namespace,
+                labels={
+                    "endpoint_config": self.name,
+                    "version": self.version,
+                },
+            ),
             spec=MLOpsClient.V1Alpha1EndpointConfigSpec(
                 models=[MLOpsClient.V1Alpha1EndpointConfigModel.parse_obj(model) for model in (models or [])]
             ),
