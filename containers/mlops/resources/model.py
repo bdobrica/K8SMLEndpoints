@@ -79,13 +79,12 @@ class Model:
             return None
 
         api = MLOpsClient.V1Alpha1Api()
-        results = api.list_namespaced_endpoint_configs(
-            namespace=self.namespace,
-            field_selector=(
-                "metadata.name=" f"{self.body.status.endpoint_config}-" f"{self.body.status.endpoint_config_version}"
-            ),
-        )
-        return results[0] if results else None
+        if self.body and self.body.status:
+            return api.read_namespaced_endpoint_config(
+                name=f"{self.body.status.endpoint_config}-{self.body.status.endpoint_config_version}",
+                namespace=self.namespace,
+            )
+        return None
 
     def create(
         self,
