@@ -17,7 +17,6 @@ class EndpointConfig:
             name=self.named_version,
             namespace=self.namespace,
         )
-        print("self.body", self.body)
         if self.body and self.body.status:
             self.name = self.body.status.endpoint_config
             self.version = self.body.status.version
@@ -72,16 +71,11 @@ class EndpointConfig:
         )
 
     def get_endpoint(self) -> MLOpsClient.V1Alpha1Endpoint:
-        if not any([self.body, self.virtual_service]):
-            return None
-
         api = MLOpsClient.V1Alpha1Api()
 
         if self.body and self.body.status:
-            print("endpoint config has body status", self.body.status)
             return api.read_namespaced_endpoint(name=self.body.status.endpoint, namespace=self.namespace)
 
-        print("endpoint config has no body status")
         return None
 
     def create(
@@ -92,9 +86,7 @@ class EndpointConfig:
         state: Optional[str] = None,
     ) -> "EndpointConfig":
         if self.body:
-            print("body exists", self.body)
             return self
-        print("creating endpoint config with models", models, "endpoint", endpoint, "model_versions", model_versions)
 
         body = self.get_body(
             models=models,
@@ -102,10 +94,8 @@ class EndpointConfig:
             model_versions=model_versions,
             state=state,
         )
-        print("endpoint config body", body)
         api = MLOpsClient.V1Alpha1Api()
         self.body = api.create_namespaced_endpoint_config(namespace=self.namespace, body=body)
-        print("===> created endpoint config", self.body)
         return self
 
     def clone(
@@ -115,10 +105,6 @@ class EndpointConfig:
         model_versions: Optional[List[str]] = None,
         state: Optional[str] = None,
     ):
-        print("*" * 40)
-        print("new name", self.name, "namespace", self.namespace)
-        print("cloning endpoint config with models", models, "endpoint", endpoint, "model_versions", model_versions)
-        print("clone body spec", self.body.spec)
         return EndpointConfig(
             name=self.name,
             namespace=self.namespace,

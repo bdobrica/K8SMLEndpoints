@@ -38,10 +38,6 @@ class V1Alpha1Api:
             else:
                 raise
 
-        print("#" * 40)
-        print(result)
-        print("#" * 40)
-
         if format:
             return format.parse_obj(result)
 
@@ -109,15 +105,8 @@ class V1Alpha1Api:
         except K8SClient.ApiException as result:
             raise
 
-        print("")
-        print("create_namespaced_custom_object", result)
-        print("")
-
         if format:
             formatted = format.parse_obj(result)
-            print("")
-            print("formatted", formatted)
-            print("")
             return formatted
 
         return result
