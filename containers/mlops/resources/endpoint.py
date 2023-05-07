@@ -83,6 +83,7 @@ class Endpoint:
             self.endpoint_config = EndpointConfig(
                 name=self.body.spec.config, namespace=self.body.metadata.namespace
             ).clone(endpoint=self.body.metadata.name)
+            self.update(config_version=self.endpoint_config.body.metadata.name)
 
         return self
 
