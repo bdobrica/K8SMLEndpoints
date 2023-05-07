@@ -31,7 +31,7 @@ def test_endpoint_config_create():
         .create_handler()
     )
     endpoint.endpoint_config.create_handler()
-    for model in endpoint_config.get_models():
+    for model in endpoint.endpoint_config.get_models():
         print(model.body)
         model.create_handler()
     assert False
