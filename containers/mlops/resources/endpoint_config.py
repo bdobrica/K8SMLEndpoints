@@ -126,14 +126,16 @@ class EndpointConfig:
         if not self.body or not self.body.status or not self.body.status.version:
             return self
 
-        self.body = self.get_body(
+        body = self.get_body(
             models=models or self.body.spec.models,
             endpoint=endpoint or self.body.status.endpoint,
             model_versions=model_versions or self.body.status.model_versions,
             state=state or self.body.status.state,
         )
         api = MLOpsClient.V1Alpha1Api()
-        self.body = api.patch_namespaced_endpoint_config(name=self.name, namespace=self.namespace, body=self.body)
+        self.body = api.patch_namespaced_endpoint_config(
+            name=self.body.metadata.name, namespace=self.body.metadata.namespace, body=body
+        )
         return self
 
     def delete(self) -> "EndpointConfig":
@@ -141,7 +143,7 @@ class EndpointConfig:
             return self
 
         api = MLOpsClient.V1Alpha1Api()
-        api.delete_namespaced_endpoint_config(name=self.name, namespace=self.namespace)
+        api.delete_namespaced_endpoint_config(name=self.body.metadata.name, namespace=self.body.metadata.namespace)
         self.body = None
         return self
 
@@ -275,7 +277,9 @@ class EndpointConfig:
             self.body.metadata.finalizers = finalizers
 
         api = MLOpsClient.V1Alpha1Api()
-        self.body = api.patch_namespaced_endpoint_config(name=self.name, namespace=self.namespace, body=self.body)
+        self.body = api.patch_namespaced_endpoint_config(
+            name=self.body.metadata.name, namespace=self.body.metadata.namespace, body=self.body
+        )
 
         return self
 
@@ -286,6 +290,8 @@ class EndpointConfig:
                     self.body.metadata.finalizers.remove(finalizer)
 
         api = MLOpsClient.V1Alpha1Api()
-        self.body = api.patch_namespaced_endpoint_config(name=self.name, namespace=self.namespace, body=self.body)
+        self.body = api.patch_namespaced_endpoint_config(
+            name=self.body.metadata.name, namespace=self.body.metadata.namespace, body=self.body
+        )
 
         return self

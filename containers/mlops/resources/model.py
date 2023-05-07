@@ -139,7 +139,9 @@ class Model:
             endpoint_config_version=endpoint_config_version or self.body.status.endpoint_config_version,
             state=state or self.body.status.state,
         )
-        self.body = api.patch_namespaced_model(name=self.name, namespace=self.namespace, body=body)
+        self.body = api.patch_namespaced_model(
+            name=self.body.metadata.name, namespace=self.body.metadata.namespace, body=body
+        )
         return self
 
     def delete(self) -> "Model":
@@ -147,7 +149,7 @@ class Model:
             return self
 
         api = MLOpsClient.V1Alpha1Api()
-        api.delete_namespaced_model(name=self.name, namespace=self.namespace)
+        api.delete_namespaced_model(name=self.body.metadata.name, namespace=self.body.metadata.namespace)
         self.body = None
         return self
 

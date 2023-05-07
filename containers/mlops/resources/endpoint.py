@@ -42,7 +42,7 @@ class Endpoint:
             return self
 
         api = MLOpsClient.V1Alpha1Api()
-        api.delete_namespaced_endpoint(name=self.body.metadata.name, namespace=self.namespace)
+        api.delete_namespaced_endpoint(name=self.body.metadata.name, namespace=self.body.metadata.namespace)
         self.body = None
         return self
 
