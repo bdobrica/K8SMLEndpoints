@@ -7,14 +7,15 @@ from utils import DiffLine, DiffLineType, get_version
 
 
 class EndpointConfig:
-    def __init__(self, name: str, namespace: str = "default", version: str = None):
+    def __init__(self, name: str, namespace: str = "default", version: str = ""):
         self.name: str = name
         self.namespace: str = namespace
         self.version: str = version
         self.named_version: str = f"{self.name}-{self.version}" if self.version else self.name
 
         self.body = MLOpsClient.V1Alpha1Api().read_namespaced_endpoint_config(
-            name=self.named_version, namespace=self.namespace
+            name=self.named_version,
+            namespace=self.namespace,
         )
         print("self.body", self.body)
         if self.body and self.body.status:
