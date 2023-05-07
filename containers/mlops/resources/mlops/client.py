@@ -38,6 +38,10 @@ class V1Alpha1Api:
             else:
                 raise
 
+        print("#" * 40)
+        print(result)
+        print("#" * 40)
+
         if format:
             return format.parse_obj(result)
 
