@@ -115,6 +115,7 @@ class EndpointConfig:
         model_versions: Optional[List[str]] = None,
         state: Optional[str] = None,
     ):
+        print("*" * 40)
         print("cloning endpoint config with models", models, "endpoint", endpoint, "model_versions", model_versions)
         print("clone body spec", self.body.spec)
         return EndpointConfig(
