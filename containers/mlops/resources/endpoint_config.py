@@ -144,6 +144,8 @@ class EndpointConfig:
 
         endpoint = self.get_endpoint()
 
+        print("endpoint", endpoint)
+
         model_versions = []
         destinations = []
         for n, model in enumerate(self.get_models()):
