@@ -12,7 +12,7 @@ def test_endpoint_config_create():
     endpoint_config = EndpointConfig(name="titanic-rfc", namespace="titanic").create(
         models=[
             {
-                "model": "titanic-rfc",
+                "model": model.body.metadata.name,
                 "weight": 42,
                 "cpus": "100m",
                 "memory": "100Mi",
@@ -25,13 +25,19 @@ def test_endpoint_config_create():
     endpoint = (
         Endpoint(name="titanic-rfc", namespace="titanic")
         .create(
-            config="titanic-rfc",
+            config=endpoint_config.body.metadata.name,
             host="titanic-rfc.titanic.svc.cluster.local",
         )
         .create_handler()
     )
+    assert endpoint.body.spec.config == "titanic-rfc"
+    assert endpoint.body.spec.host == "titanic-rfc.titanic.svc.cluster.local"
+    assert endpoint.body.status.endpoint_config_version == endpoint_config.body.metadata.name
+    assert endpoint.endpoint_config.body.status.endpoint == endpoint.body.metadata.name
+
     endpoint.endpoint_config.create_handler()
-    for model in endpoint.endpoint_config.get_models():
-        print(model.body)
-        model.create_handler()
-    assert False
+    for model_ in endpoint.endpoint_config.get_models():
+        print(model_.body)
+        model_.create_handler()
+        assert model_.body.status.endpoint == endpoint.body.metadata.name
+        assert model_.body.status.endpoint_config == endpoint.endpoint_config.body.metadata.name
