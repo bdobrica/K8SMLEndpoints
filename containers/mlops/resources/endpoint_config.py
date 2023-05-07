@@ -67,8 +67,10 @@ class EndpointConfig:
         api = MLOpsClient.V1Alpha1Api()
 
         if self.body and self.body.status:
+            print("endpoint config has body status", self.body.status)
             return api.read_namespaced_endpoint(name=self.body.status.endpoint, namespace=self.namespace)
 
+        print("endpoint config has no body status")
         return None
 
     def create(
@@ -143,8 +145,6 @@ class EndpointConfig:
             return self
 
         endpoint = self.get_endpoint()
-
-        print("endpoint", endpoint)
 
         model_versions = []
         destinations = []
