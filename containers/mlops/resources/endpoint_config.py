@@ -83,7 +83,7 @@ class EndpointConfig:
         if self.body:
             print("body exists", self.body)
             return self
-        print("cloning endpoint config with models", models, "endpoint", endpoint, "model_versions", model_versions)
+        print("creating endpoint config with models", models, "endpoint", endpoint, "model_versions", model_versions)
 
         body = self.get_body(
             models=models,
