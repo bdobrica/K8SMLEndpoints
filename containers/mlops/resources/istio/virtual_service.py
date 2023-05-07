@@ -17,7 +17,6 @@ class V1Beta1Host(BaseModel):
 
     host: str
     port: V1Beta1Port
-    weight: int
 
     class Config:
         arbitrary_types_allowed = True
@@ -30,6 +29,7 @@ class V1Beta1Destination(BaseModel):
     """
 
     destination: List[V1Beta1Host]
+    weight: int
 
     class Config:
         arbitrary_types_allowed = True

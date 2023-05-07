@@ -25,8 +25,8 @@ class IstioVirtualService:
                                 destination=IstioClient.V1Beta1Host(
                                     host=destination.get("host"),
                                     port=IstioClient.V1Beta1Port(number=destination.get("port")),
-                                    weight=destination.get("weight"),
                                 ),
+                                weight=destination.get("weight"),
                             )
                         ]
                     )
