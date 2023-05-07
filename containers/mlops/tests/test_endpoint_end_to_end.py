@@ -32,10 +32,11 @@ def test_endpoint_config_create():
     )
     assert endpoint.body.spec.config == "titanic-rfc"
     assert endpoint.body.spec.host == "titanic-rfc.titanic.svc.cluster.local"
+
+    endpoint.endpoint_config.create_handler()
     assert endpoint.body.status.endpoint_config_version == endpoint_config.body.metadata.name
     assert endpoint.endpoint_config.body.status.endpoint == endpoint.body.metadata.name
 
-    endpoint.endpoint_config.create_handler()
     for model_ in endpoint.endpoint_config.get_models():
         print(model_.body)
         model_.create_handler()
