@@ -109,6 +109,10 @@ class V1Alpha1Api:
         except K8SClient.ApiException as result:
             raise
 
+        print("")
+        print("create_namespaced_custom_object", result)
+        print("")
+
         if format:
             return format.parse_obj(result)
 
