@@ -114,7 +114,11 @@ class V1Alpha1Api:
         print("")
 
         if format:
-            return format.parse_obj(result)
+            formatted = format.parse_obj(result)
+            print("")
+            print("formatted", formatted)
+            print("")
+            return formatted
 
         return result
 
