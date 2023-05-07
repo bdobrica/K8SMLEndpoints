@@ -28,7 +28,7 @@ class V1Beta1Destination(BaseModel):
     @param route: A list of HTTP route specifications. Requests matching a route will be forwarded to a specific service version. The route may be terminated at the gateway or it may be forwarded to another destination.
     """
 
-    destination: List[V1Beta1Host]
+    destination: V1Beta1Host
     weight: int
 
     class Config:
