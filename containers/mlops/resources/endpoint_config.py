@@ -55,7 +55,7 @@ class EndpointConfig:
                 namespace=self.namespace,
                 labels={
                     "endpoint_config": self.name,
-                    "version": self.version,
+                    **({"version": self.version} if self.version else {}),
                 },
             ),
             spec=MLOpsClient.V1Alpha1EndpointConfigSpec(
