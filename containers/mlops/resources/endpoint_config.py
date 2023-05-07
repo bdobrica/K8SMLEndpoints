@@ -89,6 +89,7 @@ class EndpointConfig:
             model_versions=model_versions,
             state=state,
         )
+        print("endpoint config body", self.body)
         api = MLOpsClient.V1Alpha1Api()
         self.body = api.create_namespaced_endpoint_config(namespace=self.namespace, body=self.body)
         return self
