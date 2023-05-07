@@ -177,7 +177,7 @@ class EndpointConfig:
                     args=model.body.spec.args,
                     endpoint=self.body.status.endpoint,
                     endpoint_config=self.body.status.endpoint_config,
-                    endpoint_config_version=self.body.status.version,
+                    endpoint_config_version=self.body.metadata.name,
                 )
                 .create_handler()
             )

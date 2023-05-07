@@ -32,9 +32,8 @@ class Endpoint:
             return self
 
         api = MLOpsClient.V1Alpha1Api()
-        endpoint_config = EndpointConfig(name=config, namespace=self.namespace).clone(endpoint=self.name)
 
-        body = self.get_body(config=config, host=host, config_version=endpoint_config.body.metadata.name)
+        body = self.get_body(config=config, host=host)
         self.body = api.create_namespaced_endpoint(namespace=self.namespace, body=body)
         return self
 
@@ -47,14 +46,39 @@ class Endpoint:
         self.body = None
         return self
 
-    def update(self, config: str = None, host: str = None) -> "Endpoint":
+    def update(self, config: str = None, host: str = None, config_version: str = None) -> "Endpoint":
+        if not self.body:
+            return self
+
+        api = MLOpsClient.V1Alpha1Api()
+        body = self.get_body(
+            config=config or self.body.spec.config,
+            host=host or self.body.spec.host,
+            config_version=config_version or self.body.status.endpoint_config_version,
+        )
+        self.body = api.patch_namespaced_endpoint(
+            name=self.body.metadata.name,
+            namespace=self.body.metadata.namespace,
+            body=body,
+        )
         return self
 
     def create_handler(self) -> "Endpoint":
+        if not self.body:
+            return self
+
         if not self.gateway:
-            self.gateway.create(labels={"endpoint": self.body.metadata.name}, hosts=[self.body.spec.host], port=8080)
+            self.gateway = IstioGateway(name=self.gateway_name, namespace=self.body.metadata.namespace).create(
+                labels={"endpoint": self.body.metadata.name},
+                hosts=[self.body.spec.host],
+                port=8080,
+            )
+
         if not self.endpoint_config:
-            self.endpoint_config.create(endpoint=self.name, hosts=[self.body.spec.host])
+            self.endpoint_config = EndpointConfig(
+                name=self.body.spec.config, namespace=self.body.metadata.namespace
+            ).clone(endpoint=self.body.metadata.name)
+
         return self
 
     def delete_handler(self) -> "Endpoint":
