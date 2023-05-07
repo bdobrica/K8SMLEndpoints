@@ -105,6 +105,7 @@ class EndpointConfig:
         print("endpoint config body", body)
         api = MLOpsClient.V1Alpha1Api()
         self.body = api.create_namespaced_endpoint_config(namespace=self.namespace, body=body)
+        print("===> created endpoint config", self.body)
         return self
 
     def clone(
