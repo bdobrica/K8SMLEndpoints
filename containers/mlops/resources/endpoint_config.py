@@ -63,11 +63,11 @@ class EndpointConfig:
             return None
 
         api = MLOpsClient.V1Alpha1Api()
-        results = api.list_namespaced_endpoints(
-            namespace=self.namespace,
-            field_selector=(f"metadata.name={self.body.status.endpoint}"),
-        )
-        return results[0] if results else None
+
+        if self.body and self.body.status:
+            return api.read_namespaced_endpoint(name=self.body.status.endpoint, namespace=self.namespace)
+
+        return None
 
     def create(
         self,
@@ -88,6 +88,18 @@ class EndpointConfig:
         api = MLOpsClient.V1Alpha1Api()
         self.body = api.create_namespaced_endpoint_config(namespace=self.namespace, body=self.body)
         return self
+
+    def clone(self):
+        return EndpointConfig(
+            name=self.name,
+            namespace=self.namespace,
+            version=get_version(),
+        ).create(
+            models=[model.dict() for model in self.body.spec.models],
+            endpoint=self.body.status.endpoint if self.body and self.body.status else None,
+            model_versions=None,
+            state=None,
+        )
 
     def update(
         self,

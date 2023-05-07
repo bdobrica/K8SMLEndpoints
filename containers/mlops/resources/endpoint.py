@@ -20,10 +20,11 @@ class Endpoint:
         self.gateway = IstioGateway(name=self.gateway_name, namespace=self.namespace)
         self.endpoint_config = EndpointConfig(name=self.endpoint_config_name, namespace=self.namespace)
 
-    def get_body(self, config: str, host: str) -> MLOpsClient.V1Alpha1Endpoint:
+    def get_body(self, config: str, host: str, config_version: str = None) -> MLOpsClient.V1Alpha1Endpoint:
         return MLOpsClient.V1Alpha1Endpoint(
             metadata=MLOpsClient.V1Alpha1ObjectMeta(name=self.name, namespace=self.namespace),
             spec=MLOpsClient.V1Alpha1EndpointSpec(config=config, host=host),
+            status=MLOpsClient.V1Alpha1EndpointStatus(endpoint_config_version=config_version),
         )
 
     def create(self, config: str, host: str) -> "Endpoint":
@@ -31,7 +32,9 @@ class Endpoint:
             return self
 
         api = MLOpsClient.V1Alpha1Api()
-        body = self.get_body(config=config, host=host)
+        endpoint_config = EndpointConfig(name=config, namespace=self.namespace).clone()
+
+        body = self.get_body(config=config, host=host, config_version=endpoint_config.body.metadata.name)
         self.body = api.create_namespaced_endpoint(namespace=self.namespace, body=body)
         return self
 
