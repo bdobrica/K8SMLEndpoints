@@ -83,15 +83,15 @@ class EndpointConfig:
         if self.body:
             return self
 
-        self.body = self.get_body(
+        body = self.get_body(
             models=models,
             endpoint=endpoint,
             model_versions=model_versions,
             state=state,
         )
-        print("endpoint config body", self.body)
+        print("endpoint config body", body)
         api = MLOpsClient.V1Alpha1Api()
-        self.body = api.create_namespaced_endpoint_config(namespace=self.namespace, body=self.body)
+        self.body = api.create_namespaced_endpoint_config(namespace=self.namespace, body=body)
         return self
 
     def clone(
