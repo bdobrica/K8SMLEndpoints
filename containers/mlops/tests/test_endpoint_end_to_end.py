@@ -41,4 +41,5 @@ def test_endpoint_config_create():
         print(model_.body)
         model_.create_handler()
         assert model_.body.status.endpoint == endpoint.body.metadata.name
-        assert model_.body.status.endpoint_config == endpoint.endpoint_config.body.metadata.name
+        assert model_.body.status.endpoint_config == endpoint_config.body.metadata.name
+        assert model_.body.status.endpoint_config_version == endpoint.endpoint_config.body.metadata.name
