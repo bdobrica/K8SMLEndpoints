@@ -116,6 +116,7 @@ class EndpointConfig:
         state: Optional[str] = None,
     ):
         print("*" * 40)
+        print("new name", self.name, "namespace", self.namespace)
         print("cloning endpoint config with models", models, "endpoint", endpoint, "model_versions", model_versions)
         print("clone body spec", self.body.spec)
         return EndpointConfig(
