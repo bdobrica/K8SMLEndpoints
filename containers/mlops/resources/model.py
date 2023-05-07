@@ -79,9 +79,9 @@ class Model:
             return None
 
         api = MLOpsClient.V1Alpha1Api()
-        if self.body and self.body.status:
+        if self.body and self.body.status and self.body.status.endpoint_config_version:
             return api.read_namespaced_endpoint_config(
-                name=f"{self.body.status.endpoint_config}-{self.body.status.endpoint_config_version}",
+                name=self.body.status.endpoint_config_version,
                 namespace=self.namespace,
             )
         return None
