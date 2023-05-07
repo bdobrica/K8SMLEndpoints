@@ -93,7 +93,7 @@ class EndpointConfig:
 
     def clone(
         self,
-        models: List[Dict[str, str]],
+        models: List[Dict[str, str]] = None,
         endpoint: Optional[str] = None,
         model_versions: Optional[List[str]] = None,
         state: Optional[str] = None,
