@@ -13,7 +13,9 @@ class EndpointConfig:
         self.version: str = version
         self.named_version: str = f"{self.name}-{self.version}" if self.version else self.name
 
-        self.body = MLOpsClient.V1Alpha1Api().read_namespaced_endpoint_config(name=self.name, namespace=self.namespace)
+        self.body = MLOpsClient.V1Alpha1Api().read_namespaced_endpoint_config(
+            name=self.named_version, namespace=self.namespace
+        )
         print("self.body", self.body)
         if self.body and self.body.status:
             self.name = self.body.status.endpoint_config
