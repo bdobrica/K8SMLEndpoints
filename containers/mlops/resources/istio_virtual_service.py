@@ -19,16 +19,18 @@ class IstioVirtualService:
                 gateways=[gateway],
                 hosts=hosts,
                 http=[
-                    IstioClient.V1Beta1Destination(
+                    IstioClient.V1Beta1Route(
                         route=[
-                            IstioClient.V1Beta1Route(
-                                host=destination.get("host"),
-                                port=IstioClient.V1Beta1Port(number=destination.get("port")),
-                                weight=destination.get("weight"),
+                            IstioClient.V1Beta1Destination(
+                                destination=IstioClient.V1Beta1Host(
+                                    host=destination.get("host"),
+                                    port=IstioClient.V1Beta1Port(number=destination.get("port")),
+                                    weight=destination.get("weight"),
+                                ),
                             )
-                            for destination in destinations
                         ]
                     )
+                    for destination in destinations
                 ],
             ),
         )

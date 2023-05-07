@@ -7,7 +7,7 @@ VIRTUAL_SERVICE_PLURAL: str = "virtualservices"
 VIRTUAL_SERVICE_KIND: str = "VirtualService"
 
 
-class V1Beta1Route(BaseModel):
+class V1Beta1Host(BaseModel):
     """
     HTTP route rule to apply during forwarding.
     @param destination: REQUIRED. Destination uniquely identifies the instances of a service to which the request/connection should be forwarded to.
@@ -29,7 +29,14 @@ class V1Beta1Destination(BaseModel):
     @param route: A list of HTTP route specifications. Requests matching a route will be forwarded to a specific service version. The route may be terminated at the gateway or it may be forwarded to another destination.
     """
 
-    route: List[V1Beta1Route]
+    destination: List[V1Beta1Host]
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class V1Beta1Route(BaseModel):
+    route: List[V1Beta1Destination]
 
     class Config:
         arbitrary_types_allowed = True
@@ -45,7 +52,7 @@ class V1Beta1VirtualServiceSpec(BaseModel):
 
     gateways: List[str]
     hosts: List[str]
-    http: List[V1Beta1Destination]
+    http: List[V1Beta1Route]
 
     class Config:
         arbitrary_types_allowed = True
