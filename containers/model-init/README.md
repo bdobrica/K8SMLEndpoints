@@ -1,0 +1,8 @@
+# Model Initializer #
+
+When a new model endpoint is created, the pod that contains the serving container is started, but it needs the model to be loaded into memory. This is done by the model initializer container. The model initializer container is a sidecar container that runs in the same pod as the serving container. The model initializer container is responsible for downloading the model artifact from the model registry and unpacking it into the `/opt/ml` folder.
+
+To save on resources, `/opt/ml` is a shared volume between all the pods replicas. This means that multiple init containers will access the volume and will try to download and unpack the model. In order to prevent this, the logic is the following:
+
+- when the first init container starts, it will create a lock file in the `/opt/ml` folder, `.model.lock`. The lock file is a zero byte file that will be deleted when the model artifact is downloaded, unpacked and ready to be used by the serving container.
+- when another init container starts, it will check if the `/opt/ml/.model.lock` file exists. If it does, it will check in an infinite loop if the file is deleted. When the file is deleted, it will check if model artifacts where created under `/opt/ml/model`. If the model artifacts are not present, it will exit with an error making the deployment fail. If the model artifacts are present, it will exit with success and the serving container will start.
