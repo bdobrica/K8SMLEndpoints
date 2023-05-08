@@ -58,6 +58,7 @@ class ModelDeployment:
                         init_containers=[
                             K8SClient.V1Container(
                                 image=init_image,
+                                image_pull_policy="Always",
                                 name=f"{self.name}-init",
                                 env=[
                                     K8SClient.V1EnvVar(
@@ -82,6 +83,7 @@ class ModelDeployment:
                             K8SClient.V1Container(
                                 name=self.name,
                                 image=image,
+                                image_pull_policy="Always",
                                 command=command,
                                 args=args,
                                 resources=K8SClient.V1ResourceRequirements(
