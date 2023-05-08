@@ -74,7 +74,6 @@ class ModelDeployment:
                                     K8SClient.V1VolumeMount(
                                         name=self.name,
                                         mount_path="/opt/ml",
-                                        read_only=True,
                                     )
                                 ],
                             )
@@ -100,6 +99,7 @@ class ModelDeployment:
                                     K8SClient.V1VolumeMount(
                                         name=self.name,
                                         mount_path="/opt/ml",
+                                        read_only=True,
                                     ),
                                 ],
                             ),
