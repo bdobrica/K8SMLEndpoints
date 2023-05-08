@@ -67,6 +67,7 @@ class ModelStorage:
             spec=K8SClient.V1PersistentVolumeClaimSpec(
                 access_modes=["ReadWriteOnce"],
                 resources=K8SClient.V1ResourceRequirements(requests={"storage": size}),
+                storage_class_name="manual",
                 selector=K8SClient.V1LabelSelector(
                     match_labels={
                         "type": "local",
