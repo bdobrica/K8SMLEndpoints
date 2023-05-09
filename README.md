@@ -9,6 +9,8 @@ Repository that tries to show how to implement SageMaker like endpoints in Kuber
     * `goreplay`: Container that captures traffic from the pod
     * `mlops`: Container that contains the Machine Learning kubernetes operator pod
         * `resources`: High level kubernetes resources abstraction
+            * `istio`: Istio resources abstraction (VirtualService, Gateway)
+            * `mlops`: MLOps resources abstraction (Model, Endpoint, EndpointConfig)
         * `tests`: pytest tests for the resources
         * `utils`: Utilities for managing kubernetes resources (eg. versioning)
         * `mlops.py`: Main file that contains the Machine Learning kubernetes operator
