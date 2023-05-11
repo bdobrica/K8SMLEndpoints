@@ -103,6 +103,62 @@ class ModelDeployment:
                                     ),
                                 ],
                             ),
+                            K8SClient.V1Container(
+                                name=f"{self.name}-nginx",
+                                image="quay.io/bdobrica/ml-operator-tools:nginx-latest",
+                                image_pull_policy="Always",
+                                ports=[
+                                    K8SClient.V1ContainerPort(
+                                        container_port=8080,
+                                    ),
+                                ],
+                                resources=K8SClient.V1ResourceRequirements(
+                                    limits={
+                                        "cpu": "0.1",
+                                        "memory": "128Mi",
+                                    },
+                                    requests={
+                                        "cpu": "0.1",
+                                        "memory": "128Mi",
+                                    },
+                                ),
+                            ),
+                            K8SClient.V1Container(
+                                name=f"{self.name}-goreplay",
+                                image="quay.io/bdobrica/ml-operator-tools:goreplay-latest",
+                                image_pull_policy="Always",
+                                args=[
+                                    "--input-raw",
+                                    f":8080",
+                                    "--output-http",
+                                    f"{self.name}:8080",
+                                ],
+                                resources=K8SClient.V1ResourceRequirements(
+                                    limits={
+                                        "cpu": "0.1",
+                                        "memory": "128Mi",
+                                    },
+                                    requests={
+                                        "cpu": "0.1",
+                                        "memory": "128Mi",
+                                    },
+                                ),
+                            ),
+                            K8SClient.V1Container(
+                                name=f"{self.name}-fluentbit",
+                                image="quay.io/bdobrica/ml-operator-tools:fluentbit-latest",
+                                image_pull_policy="Always",
+                                resources=K8SClient.V1ResourceRequirements(
+                                    limits={
+                                        "cpu": "0.1",
+                                        "memory": "128Mi",
+                                    },
+                                    requests={
+                                        "cpu": "0.1",
+                                        "memory": "128Mi",
+                                    },
+                                ),
+                            ),
                         ],
                         volumes=[
                             K8SClient.V1Volume(
